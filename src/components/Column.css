@@ -1,6 +1,5 @@
+/* --accent (header dot, progress bars) is set per data-status in index.css */
 .column {
-  --accent: var(--slate-400);
-
   display: flex;
   flex-direction: column;
   /* Padding and gap are the Figma auto-layout values */
@@ -9,19 +8,16 @@
   border: 1px solid var(--slate-100);
   border-radius: 20px;
   background: var(--slate-50);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
-/* The accent drives both the header dot and the cards' progress bars */
-.column[data-status='todo'] {
-  --accent: var(--indigo-600);
-}
-
-.column[data-status='in-progress'] {
-  --accent: var(--amber-500);
-}
-
-.column[data-status='completed'] {
-  --accent: var(--green-500);
+/* A dragged card is over this column: tint it and outline it in the column's colour */
+.column-drop-target {
+  border-color: var(--accent);
+  border-style: dashed;
+  background: color-mix(in srgb, var(--accent) 6%, var(--slate-50));
 }
 
 .column-header {
@@ -80,4 +76,6 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  /* Keeps an empty column tall enough to drop into */
+  min-height: 64px;
 }

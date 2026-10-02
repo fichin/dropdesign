@@ -1,3 +1,4 @@
+import type { ComponentPropsWithRef } from 'react'
 import { PRIORITY_LABELS, type Task } from '../types/kanban'
 import { CheckCircleIcon, CommentIcon } from './icons'
 import './Card.css'
@@ -10,17 +11,18 @@ const compactNumber = new Intl.NumberFormat('en', {
   maximumFractionDigits: 1,
 })
 
-interface CardProps {
+/** Extra article props (ref, style, drag attributes) let SortableCard make it draggable */
+interface CardProps extends ComponentPropsWithRef<'article'> {
   task: Task
 }
 
-function Card({ task }: CardProps) {
+function Card({ task, className, ...articleProps }: CardProps) {
   const visibleAssignees = task.assignees.slice(0, MAX_VISIBLE_ASSIGNEES)
   const hiddenCount = task.assignees.length - visibleAssignees.length
   const isDone = task.progress >= 100
 
   return (
-    <article className="card">
+    <article className={className ? `card ${className}` : 'card'} {...articleProps}>
       <span className="card-priority" data-priority={task.priority}>
         {PRIORITY_LABELS[task.priority]}
       </span>
@@ -48,7 +50,12 @@ function Card({ task }: CardProps) {
         <ul className="card-assignees">
           {visibleAssignees.map((assignee) => (
             <li key={assignee.id}>
-              <img src={assignee.avatarUrl} alt={assignee.name} title={assignee.name} />
+              <img
+                src={assignee.avatarUrl}
+                alt={assignee.name}
+                title={assignee.name}
+                draggable={false}
+              />
             </li>
           ))}
           {hiddenCount > 0 && (

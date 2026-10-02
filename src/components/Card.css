@@ -9,6 +9,39 @@
   box-shadow:
     0 1px 2px rgb(15 23 42 / 0.04),
     0 2px 6px rgb(15 23 42 / 0.04);
+  cursor: grab;
+  /* Long-press drags on touch screens instead of selecting text */
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.card:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+/* Drag states — the design has none, so: the slot where the card will land is a
+   dashed outline, and the card under the pointer is lifted (tilt, scale, shadow) */
+.card-placeholder {
+  /* Same 1px border width as a card, so the list doesn't shift */
+  border: 1px dashed var(--slate-400);
+  background: var(--slate-100);
+  box-shadow: none;
+}
+
+.card-placeholder > * {
+  visibility: hidden;
+}
+
+.card-overlay {
+  cursor: grabbing;
+  transform: rotate(2deg) scale(1.03);
+  box-shadow:
+    0 12px 24px -6px rgb(15 23 42 / 0.18),
+    0 4px 8px -2px rgb(15 23 42 / 0.08);
+}
+
+.drag-overlay {
+  cursor: grabbing;
 }
 
 /* Priority pill */

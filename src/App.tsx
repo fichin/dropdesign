@@ -10,6 +10,9 @@ function App() {
     <Board
       board={board}
       onAddTask={(columnId, title) => dispatch({ type: 'addTask', columnId, title })}
+      onMoveTask={(taskId, toColumnId, toIndex) =>
+        dispatch({ type: 'moveTask', taskId, toColumnId, toIndex })
+      }
     />
   )
 }

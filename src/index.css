@@ -36,6 +36,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Status colour: column header dots, progress bars, drop-zone highlight */
+[data-status='todo'] {
+  --accent: var(--indigo-600);
+}
+
+[data-status='in-progress'] {
+  --accent: var(--amber-500);
+}
+
+[data-status='completed'] {
+  --accent: var(--green-500);
+}
+
 *,
 *::before,
 *::after {

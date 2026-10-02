@@ -25,8 +25,9 @@ const move = (taskId: string, toColumnId: string, toIndex: number) =>
   t.api('PATCH', `/tasks/${taskId}/move`, { toColumnId, toIndex })
 
 describe('GET /api/health', () => {
-  it('reports the database as reachable', async () => {
-    assert.deepEqual(await t.api('GET', '/health'), { status: 200, body: { status: 'ok', database: 'ok' } })
+  it('reports the database as reachable, without needing to sign in', async () => {
+    const { status, body } = await t.client().api('GET', '/health')
+    assert.deepEqual({ status, body }, { status: 200, body: { status: 'ok', database: 'ok' } })
   })
 })
 
@@ -230,6 +231,7 @@ describe('PATCH /api/tasks/:taskId/move', () => {
 
 describe('unknown routes', () => {
   it('404 as JSON', async () => {
-    assert.deepEqual(await t.api('GET', '/nope'), { status: 404, body: { error: 'Not found' } })
+    const { status, body } = await t.api('GET', '/nope')
+    assert.deepEqual({ status, body }, { status: 404, body: { error: 'Not found' } })
   })
 })

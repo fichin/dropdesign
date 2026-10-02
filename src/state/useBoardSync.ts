@@ -32,7 +32,7 @@ async function fetchCurrentBoard(preferredId: string | undefined): Promise<Board
  * and are sent one at a time in order; if one is rejected, the board is reloaded
  * from the server, or rolled back to the last confirmed state if that fails too.
  */
-export function useBoardSync() {
+export function useBoardSync({ onUnauthorized }: { onUnauthorized: () => void }) {
   const [initialCache] = useState(loadCachedBoard)
   const [board, setBoard] = useState<Board | null>(initialCache)
   const [status, setStatus] = useState<SyncStatus>('loading')
@@ -48,10 +48,20 @@ export function useBoardSync() {
   // Latest values for the callbacks below, which shouldn't change identity on every render
   const statusRef = useRef(status)
   const boardRef = useRef(board)
+  const onUnauthorizedRef = useRef(onUnauthorized)
   useEffect(() => {
     statusRef.current = status
     boardRef.current = board
-  }, [status, board])
+    onUnauthorizedRef.current = onUnauthorized
+  }, [status, board, onUnauthorized])
+
+  /** 401: the session is missing or expired. Hand over to sign-in instead of going offline */
+  const isUnauthorized = useCallback((error: unknown) => {
+    if (!(error instanceof ApiError && error.status === 401)) return false
+    epoch.current++
+    onUnauthorizedRef.current()
+    return true
+  }, [])
 
   const adopt = useCallback((fresh: Board) => {
     confirmed.current = fresh
@@ -68,11 +78,12 @@ export function useBoardSync() {
       adopt(await fetchCurrentBoard(confirmed.current?.id))
       setLoadError(null)
     } catch (error) {
+      if (isUnauthorized(error)) return
       console.warn('Could not load the board:', error)
       setLoadError(error instanceof ApiError ? error.message : 'Something went wrong')
       setStatus(confirmed.current ? 'offline' : 'error')
     }
-  }, [adopt])
+  }, [adopt, isUnauthorized])
 
   const retry = useCallback(() => {
     setStatus('loading')
@@ -119,12 +130,14 @@ export function useBoardSync() {
             saveCachedBoard(confirmed.current)
           }
         } catch (error) {
+          if (isUnauthorized(error)) return
           epoch.current++
           const reason = error instanceof ApiError && !error.unreachable ? `: ${error.message}` : ''
           try {
             adopt(await fetchCurrentBoard(confirmed.current?.id))
             setNotice(`Your last change couldn't be saved${reason}. The board was reloaded.`)
-          } catch {
+          } catch (reloadError) {
+            if (isUnauthorized(reloadError)) return
             boardRef.current = confirmed.current
             setBoard(confirmed.current)
             setStatus('offline')
@@ -133,7 +146,7 @@ export function useBoardSync() {
         }
       })
     },
-    [adopt],
+    [adopt, isUnauthorized],
   )
 
   const addTask = useCallback(

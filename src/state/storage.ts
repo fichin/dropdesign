@@ -37,6 +37,15 @@ export function saveCachedBoard(board: Board) {
   }
 }
 
+/** On sign-out: the copy shouldn't outlive the session that was allowed to see it */
+export function clearCachedBoard() {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // Storage blocked: nothing was cached either
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

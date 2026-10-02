@@ -1,31 +1,47 @@
-import { useMemo } from 'react'
-import Board from './components/Board'
-import ProjectHeader from './components/ProjectHeader'
-import { BoardPlaceholder, Notice, StatusBanner } from './components/SyncStatus'
-import TopBar from './components/TopBar'
-import { getTeamMembers } from './state/boardReducer'
-import { useBoardSync } from './state/useBoardSync'
-import { exportBoard } from './utils/exportBoard'
+import { useEffect } from 'react'
+import AuthPage from './components/AuthPage'
+import BoardScreen from './components/BoardScreen'
+import { usePath } from './routing'
+import { useAuth } from './state/useAuth'
+
+const AUTH_PATHS = { '/login': 'login', '/register': 'register' } as const
 
 function App() {
-  // The server's board; see useBoardSync for loading, saving, rollback and the offline copy
-  const { board, status, readOnly, loadError, notice, dismissNotice, retry, addTask, moveTask } = useBoardSync()
-  const members = useMemo(() => (board ? getTeamMembers(board) : []), [board])
+  const { auth, login, register, logout, sessionEnded } = useAuth()
+  const { path, navigate } = usePath()
+  const authMode = AUTH_PATHS[path as keyof typeof AUTH_PATHS]
 
-  if (!board) {
-    return <BoardPlaceholder status={status} error={loadError} onRetry={retry} />
+  // Signed out → the login page; signed in → away from login/register; anything else → the board
+  useEffect(() => {
+    if (auth.status === 'signedOut' && !authMode) navigate('/login', { replace: true })
+    else if (auth.status === 'signedIn' && authMode) navigate('/', { replace: true })
+    else if (!authMode && path !== '/') navigate('/', { replace: true })
+  }, [auth.status, authMode, path, navigate])
+
+  if (authMode) {
+    if (auth.status === 'signedIn') return null // redirecting to the board
+    return (
+      <AuthPage
+        key={authMode}
+        mode={authMode}
+        notice={auth.status === 'signedOut' ? auth.reason : undefined}
+        onSubmit={authMode === 'login' ? login : register}
+        onSwitchMode={(mode) => navigate(`/${mode}`)}
+      />
+    )
   }
 
+  if (auth.status === 'signedOut') return null // redirecting to login
+
+  // While the session is still being checked (or the server is unreachable) the board
+  // screen loads in parallel: it shows the cached copy at once, and a 401 from it
+  // means the session has ended
   return (
-    <>
-      <TopBar projectTitle={board.title} members={members} />
-      <main>
-        <StatusBanner status={status} onRetry={retry} />
-        <ProjectHeader title={board.title} onExport={() => exportBoard(board)} />
-        <Board board={board} readOnly={readOnly} onAddTask={addTask} onMoveTask={moveTask} />
-      </main>
-      <Notice message={notice} onDismiss={dismissNotice} />
-    </>
+    <BoardScreen
+      userEmail={auth.status === 'signedIn' ? auth.user.email : undefined}
+      onLogout={logout}
+      onUnauthorized={sessionEnded}
+    />
   )
 }
 

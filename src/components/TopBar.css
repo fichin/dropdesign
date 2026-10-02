@@ -124,7 +124,74 @@
   height: 18px;
 }
 
+/* Signed-in user */
+.account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+}
+
+.account-email {
+  max-width: 200px;
+  overflow: hidden;
+  color: var(--slate-600);
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--slate-600);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.logout-button:hover {
+  background: var(--slate-100);
+  color: var(--text);
+}
+
+.logout-button svg {
+  width: 18px;
+  height: 18px;
+}
+
 @media (max-width: 767px) {
+  .account {
+    padding-left: 8px;
+  }
+
+  .account-email {
+    display: none;
+  }
+
+  /* Icon only on phones; the label stays for screen readers */
+  .logout-button {
+    justify-content: center;
+    width: 40px;
+    padding: 0;
+  }
+
+  .logout-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
   .top-bar {
     flex-direction: column;
     align-items: flex-start;

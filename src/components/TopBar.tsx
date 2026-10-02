@@ -4,6 +4,7 @@ import {
   ChevronRightIcon,
   GlobeIcon,
   HomeIcon,
+  LogoutIcon,
   PlusIcon,
   SearchIcon,
 } from './icons'
@@ -12,9 +13,12 @@ import './TopBar.css'
 interface TopBarProps {
   projectTitle: string
   members: Assignee[]
+  /** The signed-in user's email (unknown while offline) */
+  userEmail?: string
+  onLogout: () => void
 }
 
-function TopBar({ projectTitle, members }: TopBarProps) {
+function TopBar({ projectTitle, members, userEmail, onLogout }: TopBarProps) {
   return (
     <header className="top-bar">
       {/* Plain text rather than links: there are no Dashboard or Project pages yet */}
@@ -79,6 +83,18 @@ function TopBar({ projectTitle, members }: TopBarProps) {
           Invite
           <PlusIcon />
         </button>
+
+        <div className="account">
+          {userEmail && (
+            <span className="account-email" title={`Signed in as ${userEmail}`}>
+              {userEmail}
+            </span>
+          )}
+          <button type="button" className="logout-button" onClick={onLogout}>
+            <LogoutIcon />
+            <span className="logout-label">Log out</span>
+          </button>
+        </div>
       </div>
     </header>
   )

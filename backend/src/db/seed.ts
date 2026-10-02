@@ -2,12 +2,12 @@
 // Usage: npm run seed            — only if the database has no boards yet
 //        npm run seed -- --reset — deletes ALL boards, tasks and people first
 import { initialBoard } from '../../../shared/sampleBoard.ts'
-import { config } from '../config.ts'
+import { loadDatabaseUrl } from '../config.ts'
 import { createPool, withTransaction } from './pool.ts'
 import { insertSampleBoard } from './sampleData.ts'
 
 const reset = process.argv.includes('--reset')
-const pool = createPool(config.DATABASE_URL)
+const pool = createPool(loadDatabaseUrl())
 
 try {
   const boardId = await withTransaction(pool, async (client) => {

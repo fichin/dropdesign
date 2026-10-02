@@ -1,9 +1,16 @@
 import { createApp } from './app.ts'
-import { config } from './config.ts'
+import { loadServerConfig } from './config.ts'
 import { createPool } from './db/pool.ts'
 
+const config = loadServerConfig()
 const pool = createPool(config.DATABASE_URL)
-const server = createApp({ pool, corsOrigin: config.CORS_ORIGIN }).listen(config.PORT, () => {
+const app = createApp({
+  pool,
+  corsOrigin: config.CORS_ORIGIN,
+  auth: { jwtSecret: config.JWT_SECRET, secureCookies: config.NODE_ENV === 'production' },
+})
+
+const server = app.listen(config.PORT, () => {
   console.log(`API listening on http://localhost:${config.PORT}`)
 })
 

@@ -1,9 +1,9 @@
 // Usage: npm run migrate
-import { config } from '../config.ts'
+import { loadDatabaseUrl } from '../config.ts'
 import { runMigrations } from './migrations.ts'
 import { createPool } from './pool.ts'
 
-const pool = createPool(config.DATABASE_URL)
+const pool = createPool(loadDatabaseUrl())
 try {
   const applied = await runMigrations(pool)
   for (const file of applied) console.log(`Applied ${file}`)

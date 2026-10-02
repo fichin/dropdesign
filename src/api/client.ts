@@ -6,9 +6,12 @@ const API_URL = import.meta.env.VITE_API_URL ?? ''
 /** The server answered with an error (`status`), or couldn't be reached at all (`status` 0) */
 export class ApiError extends Error {
   readonly status: number
-  constructor(status: number, message: string) {
+  /** For 400s: which fields were invalid and why (zod issues from the API) */
+  readonly issues: { path: (string | number)[]; message: string }[]
+  constructor(status: number, message: string, issues: ApiError['issues'] = []) {
     super(message)
     this.status = status
+    this.issues = issues
   }
 
   /**
@@ -27,6 +30,8 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   try {
     res = await fetch(`${API_URL}/api${path}`, {
       method,
+      // Send the session cookie (also cross-origin, when VITE_API_URL points elsewhere)
+      credentials: 'include',
       headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
     })
@@ -35,13 +40,24 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   }
   const data = await res.json().catch(() => null)
   if (!res.ok) {
-    const error = new ApiError(res.status, data?.error ?? `Request failed (${res.status})`)
+    const error = new ApiError(res.status, data?.error ?? `Request failed (${res.status})`, data?.issues)
     throw error.unreachable ? new ApiError(res.status, UNREACHABLE_MESSAGE) : error
   }
   return data as T
 }
 
+export interface User {
+  id: string
+  email: string
+}
+
 export const api = {
+  me: () => request<User>('GET', '/auth/me'),
+  login: (credentials: { email: string; password: string }) => request<User>('POST', '/auth/login', credentials),
+  register: (credentials: { email: string; password: string }) =>
+    request<User>('POST', '/auth/register', credentials),
+  logout: () => request<null>('POST', '/auth/logout'),
+
   listBoards: () => request<{ id: string; title: string }[]>('GET', '/boards'),
   getBoard: (boardId: string) => request<Board>('GET', `/boards/${boardId}`),
   addTask: (boardId: string, task: { id: string; columnId: string; title: string }) =>

@@ -18,18 +18,20 @@ export function boardReducer(board: Board, action: BoardAction): Board {
       const task: Task = {
         id: crypto.randomUUID(),
         title,
-        tag: 'General',
-        tagColor: '#868e96',
+        priority: 'ok',
         progress: column.status === 'completed' ? 100 : 0,
         assignees: [],
+        commentCount: 0,
+        completedSubtaskCount: 0,
       }
 
+      // New tasks go on top: the add form opens from the column header
       return {
         ...board,
         tasks: { ...board.tasks, [task.id]: task },
         columns: {
           ...board.columns,
-          [column.id]: { ...column, taskIds: [...column.taskIds, task.id] },
+          [column.id]: { ...column, taskIds: [task.id, ...column.taskIds] },
         },
       }
     }

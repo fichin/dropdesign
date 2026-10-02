@@ -1,0 +1,31 @@
+.add-task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.add-task-form input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.add-task-form input::placeholder {
+  color: var(--slate-400);
+}
+
+.add-task-form input:focus-visible {
+  border-color: var(--primary);
+}
+
+.add-task-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

@@ -1,5 +1,15 @@
 export type TaskStatus = 'todo' | 'in-progress' | 'completed'
 
+export type Priority = 'high-priority' | 'important' | 'ok' | 'meh' | 'not-important'
+
+export const PRIORITY_LABELS: Record<Priority, string> = {
+  'high-priority': 'High Priority',
+  important: 'Important',
+  ok: 'OK',
+  meh: 'Meh',
+  'not-important': 'Not that important',
+}
+
 export interface Assignee {
   id: string
   name: string
@@ -14,12 +24,13 @@ export interface Assignee {
 export interface Task {
   id: string
   title: string
-  tag: string
-  /** Any CSS color value, e.g. '#7c5cff' */
-  tagColor: string
+  /** Colors come from the stylesheet, keyed by priority */
+  priority: Priority
   /** 0–100 */
   progress: number
   assignees: Assignee[]
+  commentCount: number
+  completedSubtaskCount: number
 }
 
 export interface Column {
@@ -31,6 +42,7 @@ export interface Column {
 }
 
 export interface Board {
+  title: string
   tasks: Record<string, Task>
   columns: Record<string, Column>
   /** Ordered left to right */

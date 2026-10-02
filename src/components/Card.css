@@ -1,0 +1,147 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 16px;
+  border: 1px solid var(--slate-100);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 2px 6px rgb(15 23 42 / 0.04);
+}
+
+/* Priority pill */
+.card-priority {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* One color per priority, most to least urgent — the same in every column */
+.card-priority[data-priority='high-priority'] {
+  background: var(--rose-50);
+  color: var(--rose-500);
+}
+
+.card-priority[data-priority='important'] {
+  background: var(--indigo-50);
+  color: var(--indigo-600);
+}
+
+.card-priority[data-priority='ok'] {
+  background: var(--green-50);
+  color: var(--green-500);
+}
+
+.card-priority[data-priority='meh'] {
+  background: var(--amber-50);
+  color: var(--amber-500);
+}
+
+.card-priority[data-priority='not-important'] {
+  background: var(--slate-100);
+  color: var(--slate-500);
+}
+
+.card-title {
+  margin: 14px 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* Progress */
+.card-progress {
+  align-self: stretch;
+}
+
+.card-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.card-progress-value {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.card-progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--slate-200);
+  overflow: hidden;
+}
+
+/* Accent comes from the column. min-width keeps a dot visible at 0%, as in the design */
+.card-progress-fill {
+  height: 100%;
+  min-width: 6px;
+  border-radius: inherit;
+  background: var(--accent, var(--primary));
+}
+
+/* Footer: avatars on the left, stats on the right */
+.card-footer {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.card-assignees {
+  display: flex;
+}
+
+.card-assignees > li {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.card-assignees > li + li {
+  margin-left: -8px;
+}
+
+.card-assignees img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-assignees-more {
+  display: grid;
+  place-items: center;
+  background: var(--indigo-50);
+  color: var(--indigo-600);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.card-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.card-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--slate-700);
+}
+
+.card-stat svg {
+  color: var(--slate-400);
+}

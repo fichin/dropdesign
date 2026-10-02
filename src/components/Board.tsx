@@ -28,9 +28,19 @@ interface BoardProps {
   readOnly: boolean
   onAddTask: (columnId: string, title: string) => void
   onMoveTask: (taskId: string, toColumnId: string, toIndex: number) => void
+  onOpenTask: (taskId: string) => void
 }
 
-function Board({ board, readOnly, onAddTask, onMoveTask }: BoardProps) {
+// Enter is left free so it can open a card's details
+const KEYBOARD_CODES = { start: ['Space'], cancel: ['Escape'], end: ['Space'] }
+
+const SCREEN_READER_INSTRUCTIONS = {
+  draggable:
+    'Press Enter to open the task details. To move the task, press Space to pick it up, ' +
+    'use the arrow keys to move it, then press Space to drop it or Escape to cancel.',
+}
+
+function Board({ board, readOnly, onAddTask, onMoveTask, onOpenTask }: BoardProps) {
   // While dragging, cards are rearranged in this preview copy so the lists make room
   // as you go. The real board only receives a single moveTask on drop, and cancelling
   // (Esc, or dropping outside every column) just discards the preview.
@@ -44,8 +54,8 @@ function Board({ board, readOnly, onAddTask, onMoveTask }: BoardProps) {
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     // Press and hold on touch screens, so swiping still scrolls the page
     useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
-    // Space/Enter to pick up, arrow keys to move, Space/Enter to drop, Esc to cancel
-    useSensor(KeyboardSensor, { coordinateGetter: kanbanKeyboardCoordinates }),
+    // Space to pick up, arrow keys to move, Space to drop, Esc to cancel
+    useSensor(KeyboardSensor, { coordinateGetter: kanbanKeyboardCoordinates, keyboardCodes: KEYBOARD_CODES }),
   )
 
   function resetDrag() {
@@ -138,7 +148,7 @@ function Board({ board, readOnly, onAddTask, onMoveTask }: BoardProps) {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
-        accessibility={{ announcements }}
+        accessibility={{ announcements, screenReaderInstructions: SCREEN_READER_INSTRUCTIONS }}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
@@ -156,6 +166,7 @@ function Board({ board, readOnly, onAddTask, onMoveTask }: BoardProps) {
                 isDropTarget={overColumnId === column.id}
                 readOnly={readOnly}
                 onAddTask={onAddTask}
+                onOpenTask={onOpenTask}
               />
             )
           })}

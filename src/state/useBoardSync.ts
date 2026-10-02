@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Board } from '../../shared/kanban.ts'
 import { api, ApiError } from '../api/client'
-import { boardReducer, type BoardAction } from './boardReducer'
+import { boardReducer, type BoardAction, type TaskChanges } from './boardReducer'
 import { loadCachedBoard, saveCachedBoard } from './storage'
 
 /**
@@ -168,6 +168,28 @@ export function useBoardSync({ onUnauthorized }: { onUnauthorized: () => void })
     [change],
   )
 
+  const updateTask = useCallback(
+    (taskId: string, changes: TaskChanges) => {
+      const { title, description, priority, assignees } = changes
+      change({ type: 'updateTask', taskId, changes }, () =>
+        api.updateTask(taskId, {
+          ...(title !== undefined && { title: title.trim() }),
+          ...(description !== undefined && { description }),
+          ...(priority && { priority }),
+          ...(assignees && { assigneeIds: assignees.map((person) => person.id) }),
+        }),
+      )
+    },
+    [change],
+  )
+
+  const deleteTask = useCallback(
+    (taskId: string) => {
+      change({ type: 'deleteTask', taskId }, () => api.deleteTask(taskId))
+    },
+    [change],
+  )
+
   // Messages disappear on their own after a few seconds
   useEffect(() => {
     if (!notice) return
@@ -185,5 +207,7 @@ export function useBoardSync({ onUnauthorized }: { onUnauthorized: () => void })
     retry,
     addTask,
     moveTask,
+    updateTask,
+    deleteTask,
   }
 }

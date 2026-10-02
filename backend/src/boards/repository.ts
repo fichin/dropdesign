@@ -1,7 +1,7 @@
 import type pg from 'pg'
 import type { Assignee, Board, Column, Priority, Task, TaskStatus } from '../../../shared/kanban.ts'
 import { withTransaction } from '../db/pool.ts'
-import { conflict, notFound } from '../errors.ts'
+import { conflict, HttpError, notFound } from '../errors.ts'
 
 type Db = pg.Pool | pg.PoolClient
 
@@ -9,6 +9,7 @@ interface TaskRow {
   id: string
   column_id: string
   title: string
+  description: string
   priority: Priority
   progress: number
   comment_count: number
@@ -18,7 +19,7 @@ interface TaskRow {
 
 // Tasks with their assignees (in display order) as a JSON array
 const TASK_SELECT = `
-  SELECT t.id, t.column_id, t.title, t.priority, t.progress, t.comment_count, t.completed_subtask_count,
+  SELECT t.id, t.column_id, t.title, t.description, t.priority, t.progress, t.comment_count, t.completed_subtask_count,
          COALESCE(
            json_agg(json_build_object('id', p.id, 'name', p.name, 'avatarUrl', p.avatar_url) ORDER BY ta.position)
              FILTER (WHERE p.id IS NOT NULL),
@@ -32,6 +33,7 @@ const TASK_SELECT = `
 const toTask = (row: TaskRow): Task => ({
   id: row.id,
   title: row.title,
+  description: row.description,
   priority: row.priority,
   progress: row.progress,
   assignees: row.assignees,
@@ -63,6 +65,11 @@ export async function getBoard(db: Db, boardId: string): Promise<Board> {
     [boardId],
   )
 
+  // Everyone who can be assigned (people aren't tied to boards yet, so that's everyone)
+  const { rows: people } = await db.query<Assignee>(
+    'SELECT id, name, avatar_url AS "avatarUrl" FROM people ORDER BY name, id',
+  )
+
   const columns: Record<string, Column> = {}
   for (const column of columnRows) columns[column.id] = { ...column, taskIds: [] }
   const tasks: Record<string, Task> = {}
@@ -71,7 +78,17 @@ export async function getBoard(db: Db, boardId: string): Promise<Board> {
     columns[row.column_id].taskIds.push(row.id)
   }
 
-  return { id: board.id, title: board.title, tasks, columns, columnOrder: columnRows.map((c) => c.id) }
+  return { id: board.id, title: board.title, tasks, columns, columnOrder: columnRows.map((c) => c.id), people }
+}
+
+/** The board a task is on, or 404 */
+async function boardOfTask(db: Db, taskId: string): Promise<string> {
+  const { rows: [row] } = await db.query<{ board_id: string }>(
+    'SELECT c.board_id FROM tasks t JOIN columns c ON c.id = t.column_id WHERE t.id = $1',
+    [taskId],
+  )
+  if (!row) throw notFound('Task not found')
+  return row.board_id
 }
 
 async function getTask(db: Db, taskId: string): Promise<Task> {
@@ -162,12 +179,8 @@ export interface MoveTaskInput {
  */
 export async function moveTask(pool: pg.Pool, taskId: string, input: MoveTaskInput) {
   return withTransaction(pool, async (client) => {
-    const { rows: [located] } = await client.query<{ board_id: string }>(
-      'SELECT c.board_id FROM tasks t JOIN columns c ON c.id = t.column_id WHERE t.id = $1',
-      [taskId],
-    )
-    if (!located) throw notFound('Task not found')
-    await lockBoard(client, located.board_id)
+    const boardId = await boardOfTask(client, taskId)
+    await lockBoard(client, boardId)
 
     // Re-read now that the board is locked: nothing else can move the task any more
     const { rows: [task] } = await client.query<{ column_id: string; progress: number }>(
@@ -177,7 +190,7 @@ export async function moveTask(pool: pg.Pool, taskId: string, input: MoveTaskInp
     if (!task) throw notFound('Task not found')
     const { rows: [toColumn] } = await client.query<{ status: TaskStatus }>(
       'SELECT status FROM columns WHERE id = $1 AND board_id = $2',
-      [input.toColumnId, located.board_id],
+      [input.toColumnId, boardId],
     )
     if (!toColumn) throw notFound('Column not found on this board')
 
@@ -207,5 +220,62 @@ export async function moveTask(pool: pg.Pool, taskId: string, input: MoveTaskInp
     }
 
     return { task: await getTask(client, taskId), columns: changed }
+  })
+}
+
+export interface UpdateTaskInput {
+  title?: string
+  description?: string
+  priority?: Priority
+  /** The complete new list of assignees, in display order (replaces the current one) */
+  assigneeIds?: string[]
+}
+
+/** Changes a task's details; fields left out stay as they are. Returns the updated task */
+export async function updateTask(pool: pg.Pool, taskId: string, input: UpdateTaskInput) {
+  return withTransaction(pool, async (client) => {
+    await lockBoard(client, await boardOfTask(client, taskId))
+
+    const fields = { title: input.title, description: input.description, priority: input.priority }
+    const sets = Object.entries(fields).filter(([, value]) => value !== undefined)
+    await client.query(
+      `UPDATE tasks SET ${[...sets.map(([name], i) => `${name} = $${i + 2}`), 'updated_at = now()'].join(', ')}
+       WHERE id = $1`,
+      [taskId, ...sets.map(([, value]) => value)],
+    )
+
+    if (input.assigneeIds) {
+      const { rows } = await client.query<{ id: string }>('SELECT id FROM people WHERE id = ANY($1::uuid[])', [
+        input.assigneeIds,
+      ])
+      if (rows.length !== input.assigneeIds.length) {
+        throw new HttpError(400, 'One of the selected people no longer exists')
+      }
+      await client.query('DELETE FROM task_assignees WHERE task_id = $1', [taskId])
+      await client.query(
+        `INSERT INTO task_assignees (task_id, person_id, position)
+         SELECT $1, id, ordinality - 1 FROM unnest($2::uuid[]) WITH ORDINALITY AS a(id, ordinality)`,
+        [taskId, input.assigneeIds],
+      )
+    }
+
+    return getTask(client, taskId)
+  })
+}
+
+/** Deletes a task and closes the gap it leaves in its column. Returns the column's new order */
+export async function deleteTask(pool: pg.Pool, taskId: string) {
+  return withTransaction(pool, async (client) => {
+    await lockBoard(client, await boardOfTask(client, taskId))
+    // Assignee links go with it (ON DELETE CASCADE)
+    const { rows: [deleted] } = await client.query<{ column_id: string }>(
+      'DELETE FROM tasks WHERE id = $1 RETURNING column_id',
+      [taskId],
+    )
+    if (!deleted) throw notFound('Task not found')
+
+    const remaining = await columnTaskIds(client, deleted.column_id)
+    await placeTasks(client, deleted.column_id, remaining)
+    return { columns: { [deleted.column_id]: remaining } }
   })
 }

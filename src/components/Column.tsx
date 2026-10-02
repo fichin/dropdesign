@@ -15,9 +15,10 @@ interface ColumnProps {
   /** Showing a cached copy: no dragging or adding */
   readOnly: boolean
   onAddTask: (columnId: string, title: string) => void
+  onOpenTask: (taskId: string) => void
 }
 
-function Column({ column, tasks, isDropTarget, readOnly, onAddTask }: ColumnProps) {
+function Column({ column, tasks, isDropTarget, readOnly, onAddTask, onOpenTask }: ColumnProps) {
   const [isAdding, setIsAdding] = useState(false)
   // The whole column is a drop zone, so cards can be dropped into an empty column too.
   // type/taskIds are read by keyboard navigation (see keyboardCoordinates.ts)
@@ -60,7 +61,7 @@ function Column({ column, tasks, isDropTarget, readOnly, onAddTask }: ColumnProp
         )}
         <SortableContext id={column.id} items={column.taskIds} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <SortableCard key={task.id} task={task} disabled={readOnly} />
+            <SortableCard key={task.id} task={task} disabled={readOnly} onOpen={onOpenTask} />
           ))}
         </SortableContext>
       </div>

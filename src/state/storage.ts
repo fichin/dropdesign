@@ -4,10 +4,10 @@ import { PRIORITIES, TASK_STATUSES, type Board } from '../../shared/kanban.ts'
 // of truth; this only lets the board appear instantly on load, and be viewed offline.
 const STORAGE_KEY = 'kanban-board'
 /**
- * Bump when the saved shape changes. v1 was the pre-backend local board (sample ids,
- * no board id), so it's ignored rather than shown as if it came from the server.
+ * Bump when the saved shape changes; older copies are ignored (the server has the real
+ * board). v1: pre-backend local board. v2: no task descriptions or people list.
  */
-const STORAGE_VERSION = 2
+const STORAGE_VERSION = 3
 
 /** The cached board, or null when there isn't a usable one (missing, outdated, corrupted, or storage blocked) */
 export function loadCachedBoard(): Board | null {
@@ -52,6 +52,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 const isString = (value: unknown) => typeof value === 'string'
 const isNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value)
+const isPerson = (value: unknown) =>
+  isRecord(value) && isString(value.id) && isString(value.name) && isString(value.avatarUrl)
 
 /**
  * Checks everything the UI relies on, so a board that parses but is broken
@@ -59,23 +61,22 @@ const isNumber = (value: unknown) => typeof value === 'number' && Number.isFinit
  */
 function isBoard(value: unknown): value is Board {
   if (!isRecord(value) || !isString(value.id) || !isString(value.title)) return false
-  const { tasks, columns, columnOrder } = value
+  const { tasks, columns, columnOrder, people } = value
   if (!isRecord(tasks) || !isRecord(columns) || !Array.isArray(columnOrder)) return false
+  if (!Array.isArray(people) || !people.every(isPerson)) return false
 
   const tasksValid = Object.entries(tasks).every(
     ([id, task]) =>
       isRecord(task) &&
       task.id === id &&
       isString(task.title) &&
+      isString(task.description) &&
       PRIORITIES.includes(task.priority as (typeof PRIORITIES)[number]) &&
       isNumber(task.progress) &&
       isNumber(task.commentCount) &&
       isNumber(task.completedSubtaskCount) &&
       Array.isArray(task.assignees) &&
-      task.assignees.every(
-        (person) =>
-          isRecord(person) && isString(person.id) && isString(person.name) && isString(person.avatarUrl),
-      ),
+      task.assignees.every(isPerson),
   )
   if (!tasksValid) return false
 

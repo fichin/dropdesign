@@ -62,6 +62,13 @@ describe('GET /api/boards/:boardId', () => {
       ['Ana', 'Marko', 'Sara', 'David', 'Elena', 'Luka', 'Mia'],
     )
     assert.deepEqual(board.tasks[ids.task('Write a few')].assignees.length, 1)
+    assert.equal(ml.description, '')
+    // Everyone who can be assigned, by name, with the same shape as assignees
+    assert.deepEqual(
+      board.people.map((p) => p.name.split(' ')[0]),
+      ['Ana', 'David', 'Elena', 'Luka', 'Marko', 'Mia', 'Sara'],
+    )
+    assert.deepEqual(Object.keys(board.people[0]).sort(), ['avatarUrl', 'id', 'name'])
   })
 
   it('404s for an unknown board and 400s for a malformed id', async () => {
@@ -82,6 +89,7 @@ describe('POST /api/boards/:boardId/tasks', () => {
     assert.deepEqual(body, {
       id,
       title: 'New task',
+      description: '',
       priority: 'ok',
       progress: 0,
       assignees: [],

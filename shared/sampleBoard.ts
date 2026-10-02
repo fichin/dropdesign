@@ -14,7 +14,8 @@ const people: Assignee[] = [
 
 const team = (count: number) => people.slice(0, count)
 
-const tasks: Task[] = [
+// Descriptions start empty; they're added in the task detail modal
+const sampleTasks: Omit<Task, 'description'>[] = [
   // To Do
   {
     id: 't1',
@@ -120,6 +121,7 @@ const tasks: Task[] = [
     completedSubtaskCount: 11,
   },
 ]
+const tasks: Task[] = sampleTasks.map((task) => ({ ...task, description: '' }))
 
 export const initialBoard: Board = {
   // Placeholder: the seed script gives the board (and everything in it) real UUIDs
@@ -142,4 +144,5 @@ export const initialBoard: Board = {
     },
   },
   columnOrder: ['todo', 'in-progress', 'completed'],
+  people: [...people].sort((a, b) => a.name.localeCompare(b.name)),
 }

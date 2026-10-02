@@ -64,6 +64,12 @@ change the board (boards don't have owners yet).
 | GET | `/api/boards/:boardId` | | The whole board (`Board` in `shared/kanban.ts`) |
 | POST | `/api/boards/:boardId/tasks` | `{ id, columnId, title }` | The task; 201 when created, 200 if that exact task already exists (a retry), 409 if the id belongs to a different task |
 | PATCH | `/api/tasks/:taskId/move` | `{ toColumnId, toIndex }` | `{ task, columns }`, where `columns` maps each changed column to its new task order |
+| PATCH | `/api/tasks/:taskId` | any of `{ title, description, priority, assigneeIds }` | The updated task. Fields left out don't change; `assigneeIds` is the complete new list in display order (`[]` clears it). 400 for an empty or over-500-character title, a description over 5,000 characters, an unknown priority, an empty body, unknown fields, a person listed twice, or a person who doesn't exist |
+| DELETE | `/api/tasks/:taskId` | | `{ columns }` with the task's column in its new order; the gap it left is closed. 404 if it doesn't exist |
+
+The board (`GET /api/boards/:boardId`) includes `people`: everyone who can be
+assigned, sorted by name, in the same `{ id, name, avatarUrl }` shape as a task's
+assignees. Tasks include `description` (`''` when there is none).
 
 Rules the server enforces: new tasks go on top of their column; a task arriving in
 a Completed column (added or moved) gets progress 100; `toIndex` past the end of a
@@ -105,7 +111,7 @@ backend/
     auth/session.ts      session cookie: sign/verify the JWT, requireAuth middleware
     auth/routes.ts       register, login, logout, me
     boards/routes.ts     endpoints + request validation (zod)
-    boards/repository.ts SQL for reading boards and adding/moving tasks
+    boards/repository.ts SQL for reading boards and adding/moving/editing/deleting tasks
     db/pool.ts           Postgres connection pool + transaction helper
     db/migrations.ts     migration runner (used by migrate.ts and the tests)
     db/migrate.ts        `npm run migrate`

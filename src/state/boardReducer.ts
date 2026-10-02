@@ -20,6 +20,21 @@ export type BoardAction =
       /** Position in the destination column once the move is done */
       toIndex: number
     }
+  | {
+      /** Edits from the task detail modal; fields left out stay as they are */
+      type: 'updateTask'
+      taskId: string
+      changes: TaskChanges
+    }
+  | {
+      type: 'deleteTask'
+      taskId: string
+    }
+
+export type TaskChanges = Partial<Pick<Task, 'title' | 'description' | 'priority' | 'assignees'>>
+
+const sameAssignees = (a: Task['assignees'], b: Task['assignees']) =>
+  a.length === b.length && a.every((person, i) => person.id === b[i].id)
 
 /** Id of the column holding a task, or the id itself when it's already a column id */
 export function findColumnId(board: Board, id: string): string | undefined {
@@ -50,6 +65,7 @@ export function boardReducer(board: Board, action: BoardAction): Board {
       const task: Task = {
         id: action.taskId,
         title,
+        description: '',
         priority: 'ok',
         progress: column.status === 'completed' ? 100 : 0,
         assignees: [],
@@ -104,6 +120,40 @@ export function boardReducer(board: Board, action: BoardAction): Board {
           }),
           [toColumn.id]: { ...toColumn, taskIds: toTaskIds },
         },
+      }
+    }
+
+    case 'updateTask': {
+      const task = board.tasks[action.taskId]
+      if (!task) return board
+      const { title, description, priority, assignees } = action.changes
+      // Same rule as the server: titles are trimmed and can't be empty
+      const trimmedTitle = title?.trim()
+      const next: Task = {
+        ...task,
+        ...(trimmedTitle && { title: trimmedTitle }),
+        ...(description !== undefined && { description }),
+        ...(priority && { priority }),
+        ...(assignees && { assignees }),
+      }
+      const unchanged =
+        next.title === task.title &&
+        next.description === task.description &&
+        next.priority === task.priority &&
+        sameAssignees(next.assignees, task.assignees)
+      if (unchanged) return board
+      return { ...board, tasks: { ...board.tasks, [task.id]: next } }
+    }
+
+    case 'deleteTask': {
+      const columnId = findColumnId(board, action.taskId)
+      if (!columnId || !board.tasks[action.taskId]) return board
+      const column = board.columns[columnId]
+      const { [action.taskId]: _deleted, ...tasks } = board.tasks
+      return {
+        ...board,
+        tasks,
+        columns: { ...board.columns, [columnId]: { ...column, taskIds: column.taskIds.filter((id) => id !== action.taskId) } },
       }
     }
   }

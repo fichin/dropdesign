@@ -29,6 +29,8 @@ export interface Assignee {
 export interface Task {
   id: string
   title: string
+  /** Longer text shown in the task detail modal; '' when there is none */
+  description: string
   /** Colors come from the stylesheet, keyed by priority */
   priority: Priority
   /** 0–100 */
@@ -53,4 +55,6 @@ export interface Board {
   columns: Record<string, Column>
   /** Ordered left to right */
   columnOrder: string[]
+  /** Everyone who can be assigned to tasks, by name */
+  people: Assignee[]
 }

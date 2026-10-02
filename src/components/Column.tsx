@@ -18,7 +18,7 @@ interface ColumnProps {
 function Column({ column, tasks, isDropTarget, onAddTask }: ColumnProps) {
   const [isAdding, setIsAdding] = useState(false)
   // The whole column is a drop zone, so cards can be dropped into an empty column too.
-  // taskIds lets keyboard navigation skip it while it has cards (see keyboardCoordinates.ts)
+  // type/taskIds are read by keyboard navigation (see keyboardCoordinates.ts)
   const { setNodeRef } = useDroppable({
     id: column.id,
     data: { type: 'column', taskIds: column.taskIds },
@@ -54,7 +54,7 @@ function Column({ column, tasks, isDropTarget, onAddTask }: ColumnProps) {
             onClose={() => setIsAdding(false)}
           />
         )}
-        <SortableContext items={column.taskIds} strategy={verticalListSortingStrategy}>
+        <SortableContext id={column.id} items={column.taskIds} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
             <SortableCard key={task.id} task={task} />
           ))}

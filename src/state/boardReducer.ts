@@ -8,7 +8,10 @@ export type BoardAction =
       title: string
     }
   | {
-      /** Places a task in a column at a position; covers both reordering and moving between columns */
+      /**
+       * Places a task in a column at a position; covers both reordering and moving
+       * between columns. Moving into the Completed column sets progress to 100.
+       */
       type: 'moveTask'
       taskId: string
       toColumnId: string
@@ -68,8 +71,14 @@ export function boardReducer(board: Board, action: BoardAction): Board {
 
       const toTaskIds = [...remaining.slice(0, toIndex), action.taskId, ...remaining.slice(toIndex)]
 
+      // Arriving in Completed means the task is done
+      const completesTask = !isSameColumn && toColumn.status === 'completed' && task.progress !== 100
+
       return {
         ...board,
+        ...(completesTask && {
+          tasks: { ...board.tasks, [task.id]: { ...task, progress: 100 } },
+        }),
         columns: {
           ...board.columns,
           ...(!isSameColumn && {

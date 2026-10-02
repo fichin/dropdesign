@@ -1,4 +1,4 @@
-import type { Board, Task } from '../types/kanban'
+import type { Assignee, Board, Task } from '../types/kanban'
 
 // Every change to the board goes through this reducer
 export type BoardAction =
@@ -23,6 +23,19 @@ export type BoardAction =
 export function findColumnId(board: Board, id: string): string | undefined {
   if (board.columns[id]) return id
   return board.columnOrder.find((columnId) => board.columns[columnId].taskIds.includes(id))
+}
+
+/** Everyone assigned to at least one task, in board order of first appearance */
+export function getTeamMembers(board: Board): Assignee[] {
+  const members = new Map<string, Assignee>()
+  for (const columnId of board.columnOrder) {
+    for (const taskId of board.columns[columnId].taskIds) {
+      for (const assignee of board.tasks[taskId].assignees) {
+        if (!members.has(assignee.id)) members.set(assignee.id, assignee)
+      }
+    }
+  }
+  return [...members.values()]
 }
 
 export function boardReducer(board: Board, action: BoardAction): Board {

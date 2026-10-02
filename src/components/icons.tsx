@@ -10,10 +10,104 @@ const base: IconProps = {
   focusable: false,
 }
 
+const stroke: IconProps = {
+  ...base,
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+}
+
 export function PlusIcon(props: IconProps) {
   return (
-    <svg {...base} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" {...props}>
+    <svg {...stroke} {...props}>
       <path d="M12 5v14M5 12h14" />
+    </svg>
+  )
+}
+
+export function HomeIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-8.5Z" />
+    </svg>
+  )
+}
+
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  )
+}
+
+export function ChevronLeftIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <path d="m15 6-6 6 6 6" />
+    </svg>
+  )
+}
+
+export function GlobeIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3Z" />
+    </svg>
+  )
+}
+
+export function SearchIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  )
+}
+
+export function GridViewIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M12 4v16M4 12h16" />
+    </svg>
+  )
+}
+
+export function ListViewIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <path d="M5 7h14M5 12h14M5 17h14" />
+    </svg>
+  )
+}
+
+export function ColumnViewIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <rect x="5" y="4" width="5" height="16" rx="1.5" />
+      <rect x="14" y="4" width="5" height="16" rx="1.5" />
+    </svg>
+  )
+}
+
+export function RowViewIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <rect x="4" y="5" width="16" height="5" rx="1.5" />
+      <rect x="4" y="14" width="16" height="5" rx="1.5" />
+    </svg>
+  )
+}
+
+export function ExportIcon(props: IconProps) {
+  return (
+    <svg {...stroke} {...props}>
+      <path d="M8 10H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1M12 15V4M8.5 7.5 12 4l3.5 3.5" />
     </svg>
   )
 }

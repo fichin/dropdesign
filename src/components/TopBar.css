@@ -1,0 +1,166 @@
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 80px;
+  padding: 16px 32px;
+  background: var(--slate-50);
+}
+
+/* Breadcrumb */
+.breadcrumb ol {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.breadcrumb li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--slate-600);
+}
+
+.breadcrumb-home {
+  width: 20px;
+  height: 20px;
+}
+
+.breadcrumb-separator {
+  margin: 0 8px 0 10px;
+  color: var(--slate-400);
+}
+
+.breadcrumb li.breadcrumb-current {
+  color: var(--primary);
+}
+
+.breadcrumb-back {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+/* Actions */
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--slate-600);
+}
+
+.icon-button svg {
+  width: 22px;
+  height: 22px;
+}
+
+.team {
+  display: flex;
+}
+
+.team > li {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.team > li + li {
+  margin-left: -10px;
+}
+
+.team img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-more {
+  display: none;
+  place-items: center;
+  background: var(--indigo-50);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.invite-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 14px 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--slate-600);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.invite-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 767px) {
+  .top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: 0;
+    padding: 16px;
+  }
+
+  /* Visually replaced by the back label, but still read out by screen readers */
+  .breadcrumb ol {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .breadcrumb-back {
+    display: flex;
+  }
+
+  .top-bar-actions {
+    gap: 8px;
+  }
+
+  .icon-button {
+    margin-left: -8px;
+  }
+
+  /* Three faces and a "+N" chip, as in the mobile design */
+  .team-member:nth-child(n + 4) {
+    display: none;
+  }
+
+  .team-more {
+    display: grid;
+  }
+}

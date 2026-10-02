@@ -2,17 +2,6 @@
   padding: 32px;
 }
 
-.board-header {
-  margin-bottom: 24px;
-}
-
-.board-title {
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
 /* One track per column; scrolls sideways rather than squashing cards */
 .board {
   display: grid;
@@ -26,14 +15,6 @@
 @media (max-width: 767px) {
   .board-page {
     padding: 16px;
-  }
-
-  .board-header {
-    margin-bottom: 16px;
-  }
-
-  .board-title {
-    font-size: 20px;
   }
 
   /* Mobile design stacks the columns */

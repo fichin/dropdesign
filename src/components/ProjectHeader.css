@@ -1,0 +1,139 @@
+.project-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 32px;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+
+/* Half-filled planet from the design */
+.project-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--indigo-100);
+}
+
+.project-icon::before {
+  content: '';
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(var(--indigo-400) 50%, var(--indigo-600) 50%);
+}
+
+.project-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-title {
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.view-tabs {
+  display: inline-flex;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--slate-100);
+  /* Scrolls sideways on narrow screens; the bar itself would clash with the pill shape */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.view-tab {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--slate-600);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.view-tab svg {
+  color: var(--slate-600);
+}
+
+.view-tab[aria-selected='true'] {
+  background: #fff;
+  color: var(--text);
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.06),
+    0 1px 3px rgb(15 23 42 / 0.08);
+}
+
+.view-tab[aria-selected='true'] svg {
+  color: var(--primary);
+}
+
+.export-button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-end;
+  height: 44px;
+  padding: 0 20px 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.export-button:hover {
+  background: var(--indigo-700);
+}
+
+.export-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 767px) {
+  .project-header {
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 24px 16px;
+  }
+
+  .project-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .project-icon::before {
+    width: 44px;
+    height: 44px;
+  }
+
+  .project-heading {
+    flex-basis: 100%;
+  }
+
+  .project-title {
+    font-size: 22px;
+  }
+
+  .export-button {
+    align-self: auto;
+  }
+}

@@ -19,6 +19,7 @@ import type { Board as BoardType } from '../types/kanban'
 import Card from './Card'
 import Column from './Column'
 import { kanbanKeyboardCoordinates } from './keyboardCoordinates'
+import { BOARD_VIEW_ID } from './ProjectHeader'
 import './Board.css'
 
 interface BoardProps {
@@ -131,11 +132,7 @@ function Board({ board, onAddTask, onMoveTask }: BoardProps) {
   const overlayStatus = overColumnId ? shown.columns[overColumnId].status : undefined
 
   return (
-    <main className="board-page">
-      <header className="board-header">
-        <h1 className="board-title">{shown.title}</h1>
-      </header>
-
+    <div className="board-page" id={BOARD_VIEW_ID} role="tabpanel" aria-labelledby="view-tab-grid">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -171,7 +168,7 @@ function Board({ board, onAddTask, onMoveTask }: BoardProps) {
           )}
         </DragOverlay>
       </DndContext>
-    </main>
+    </div>
   )
 }
 

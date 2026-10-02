@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import type { User } from '../api/client'
 import { findColumnId, getTeamMembers } from '../state/boardReducer'
 import { useBoardSync } from '../state/useBoardSync'
 import { exportBoard } from '../utils/exportBoard'
@@ -9,13 +10,14 @@ import TaskModal from './TaskModal'
 import TopBar from './TopBar'
 
 interface BoardScreenProps {
-  userEmail?: string
+  /** The signed-in user; unknown while the session is being checked or the server is unreachable */
+  user?: User
   onLogout: () => void
   /** The API answered 401: the session is missing or has expired */
   onUnauthorized: () => void
 }
 
-function BoardScreen({ userEmail, onLogout, onUnauthorized }: BoardScreenProps) {
+function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
   // The server's board; see useBoardSync for loading, saving, rollback and the offline copy
   const sync = useBoardSync({ onUnauthorized })
   const { board, status, readOnly, loadError, notice, dismissNotice, retry } = sync
@@ -33,7 +35,7 @@ function BoardScreen({ userEmail, onLogout, onUnauthorized }: BoardScreenProps) 
 
   return (
     <>
-      <TopBar projectTitle={board.title} members={members} userEmail={userEmail} onLogout={onLogout} />
+      <TopBar projectTitle={board.title} members={members} userEmail={user?.email} onLogout={onLogout} />
       <main>
         <StatusBanner status={status} onRetry={retry} />
         <ProjectHeader title={board.title} onExport={() => exportBoard(board)} />
@@ -56,6 +58,8 @@ function BoardScreen({ userEmail, onLogout, onUnauthorized }: BoardScreenProps) 
           onUpdate={(changes) => sync.updateTask(openTask.id, changes)}
           onDelete={() => sync.deleteTask(openTask.id)}
           onClose={() => setOpenTaskId(null)}
+          currentUser={user}
+          comments={sync}
         >
           {/* The modal sits in the browser's top layer, so messages must render inside it to be seen */}
           {noticeElement}

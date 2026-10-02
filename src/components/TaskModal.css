@@ -241,9 +241,153 @@ body:has(.task-modal[open]) {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: -8px;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+/* Comments */
+.task-comments {
+  padding-top: 4px;
+}
+
+.comments-status {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.comments-retry {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 4px 0;
+}
+
+.comment {
+  display: flex;
+  gap: 10px;
+  transition: opacity 150ms ease;
+}
+
+/* Sent but not yet confirmed by the server */
+.comment-pending {
+  opacity: 0.6;
+}
+
+.comment-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.comment-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.comment-author {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.comment-you {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.comment-sending {
+  font-style: italic;
+}
+
+.comment-delete {
+  margin-left: auto;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--slate-500);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.comment-delete:hover:not(:disabled) {
+  background: var(--rose-50);
+  color: #be123c;
+}
+
+.comment-delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.comment-body {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 4px 12px 12px 12px;
+  background: var(--slate-50);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-input {
+  min-height: 72px;
+}
+
+.comment-input:disabled {
+  background: var(--slate-50);
+  cursor: not-allowed;
+}
+
+.comment-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.comment-hint {
+  color: var(--slate-400);
+  font-size: 12px;
+}
+
+.comment-hint-error {
+  color: #be123c;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comment {
+    transition: none;
+  }
 }
 
 .task-modal-subtasks svg,

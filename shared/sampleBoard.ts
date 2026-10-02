@@ -126,7 +126,7 @@ const tasks: Task[] = sampleTasks.map((task) => ({ ...task, description: '' }))
 export const initialBoard: Board = {
   // Placeholder: the seed script gives the board (and everything in it) real UUIDs
   id: 'sample-board',
-  title: 'Project PlanetX',
+  title: 'DropDesign',
   tasks: Object.fromEntries(tasks.map((task) => [task.id, task])),
   columns: {
     todo: { id: 'todo', title: 'To Do', status: 'todo', taskIds: ['t1', 't2', 't3', 't4'] },

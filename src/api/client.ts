@@ -1,4 +1,4 @@
-import type { Board, Priority, Task } from '../../shared/kanban.ts'
+import type { Board, Comment, Priority, Task } from '../../shared/kanban.ts'
 
 // Empty in development (Vite proxies /api to the backend); the API's URL in production
 const API_URL = import.meta.env.VITE_API_URL ?? ''
@@ -69,4 +69,9 @@ export const api = {
     changes: { title?: string; description?: string; priority?: Priority; assigneeIds?: string[] },
   ) => request<Task>('PATCH', `/tasks/${taskId}`, changes),
   deleteTask: (taskId: string) => request<{ columns: Record<string, string[]> }>('DELETE', `/tasks/${taskId}`),
+  listComments: (taskId: string) => request<Comment[]>('GET', `/tasks/${taskId}/comments`),
+  addComment: (taskId: string, comment: { id: string; body: string }) =>
+    request<{ comment: Comment; commentCount: number }>('POST', `/tasks/${taskId}/comments`, comment),
+  deleteComment: (commentId: string) =>
+    request<{ taskId: string; commentCount: number }>('DELETE', `/comments/${commentId}`),
 }

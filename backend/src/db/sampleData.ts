@@ -55,7 +55,9 @@ export async function insertSampleBoard(client: pg.PoolClient | pg.Pool): Promis
       tasks.map((t) => t.title),
       tasks.map((t) => t.priority),
       tasks.map((t) => t.progress),
-      tasks.map((t) => t.commentCount),
+      // comment_count tracks real comments, and the sample has none (its commentCount
+      // values are placeholders from the design mockups)
+      tasks.map(() => 0),
       tasks.map((t) => t.completedSubtaskCount),
       tasks.map((t) => t.position),
     ],

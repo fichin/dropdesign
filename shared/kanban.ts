@@ -40,6 +40,17 @@ export interface Task {
   completedSubtaskCount: number
 }
 
+export interface Comment {
+  id: string
+  taskId: string
+  body: string
+  /** ISO timestamp */
+  createdAt: string
+  author: Assignee
+  /** The account that wrote it (to tell "your" comments apart); null if that account is gone */
+  authorUserId: string | null
+}
+
 export interface Column {
   id: string
   title: string

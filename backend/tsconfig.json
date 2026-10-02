@@ -17,5 +17,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "test", "../shared"]
+  "include": ["src", "test", "scripts", "../shared"]
 }

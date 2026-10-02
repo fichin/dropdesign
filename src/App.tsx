@@ -38,7 +38,7 @@ function App() {
   // means the session has ended
   return (
     <BoardScreen
-      userEmail={auth.status === 'signedIn' ? auth.user.email : undefined}
+      user={auth.status === 'signedIn' ? auth.user : undefined}
       onLogout={logout}
       onUnauthorized={sessionEnded}
     />

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Board } from '../../shared/kanban.ts'
+import type { Board, Comment } from '../../shared/kanban.ts'
 import { api, ApiError } from '../api/client'
 import { boardReducer, type BoardAction, type TaskChanges } from './boardReducer'
 import { loadCachedBoard, saveCachedBoard } from './storage'
@@ -107,29 +107,42 @@ export function useBoardSync({ onUnauthorized }: { onUnauthorized: () => void })
     }
   }, [load, retry])
 
-  /** Apply now, send in order, and recover if the server says no */
+  /**
+   * Apply now, send in order, and recover if the server says no. Returns whether the
+   * change was applied (not when read-only, or when it changes nothing). The callbacks let
+   * state outside the board (e.g. the comment list) follow the server's answer; onError
+   * also runs if the change is dropped because an earlier one was rolled back.
+   */
   const change = useCallback(
-    (action: BoardAction, send: () => Promise<unknown>) => {
+    <T,>(
+      action: BoardAction,
+      send: () => Promise<T>,
+      callbacks: { onSuccess?: (result: T) => void; onError?: () => void } = {},
+    ): boolean => {
       const current = boardRef.current
-      if (statusRef.current !== 'live' || !current) return
+      if (statusRef.current !== 'live' || !current) return false
       const next = boardReducer(current, action)
       // e.g. a card dropped back where it started: nothing to save
-      if (next === current) return
+      if (next === current) return false
       boardRef.current = next
       setBoard(next)
       const changeEpoch = epoch.current
 
       queue.current = queue.current.then(async () => {
         // Made on top of a change that has since been rolled back: don't send it
-        if (changeEpoch !== epoch.current) return
+        if (changeEpoch !== epoch.current) {
+          callbacks.onError?.()
+          return
+        }
         try {
-          await send()
+          callbacks.onSuccess?.(await send())
           // The server applies the same rules as the reducer, so this matches its state
           if (confirmed.current) {
             confirmed.current = boardReducer(confirmed.current, action)
             saveCachedBoard(confirmed.current)
           }
         } catch (error) {
+          callbacks.onError?.()
           if (isUnauthorized(error)) return
           epoch.current++
           const reason = error instanceof ApiError && !error.unreachable ? `: ${error.message}` : ''
@@ -145,6 +158,7 @@ export function useBoardSync({ onUnauthorized }: { onUnauthorized: () => void })
           }
         }
       })
+      return true
     },
     [adopt, isUnauthorized],
   )
@@ -190,6 +204,39 @@ export function useBoardSync({ onUnauthorized }: { onUnauthorized: () => void })
     [change],
   )
 
+  /** Comments aren't part of the board; a 401 here ends the session like any other request */
+  const loadComments = useCallback(
+    async (taskId: string) => {
+      try {
+        return await api.listComments(taskId)
+      } catch (error) {
+        isUnauthorized(error)
+        throw error
+      }
+    },
+    [isUnauthorized],
+  )
+
+  /** Adds a comment (count +1 on the card right away); returns false if it can't be sent (read-only) */
+  const addComment = useCallback(
+    (
+      taskId: string,
+      comment: { id: string; body: string },
+      callbacks: { onSuccess: (saved: Comment) => void; onError: () => void },
+    ) =>
+      change({ type: 'adjustCommentCount', taskId, delta: 1 }, () => api.addComment(taskId, comment), {
+        onSuccess: (result) => callbacks.onSuccess(result.comment),
+        onError: callbacks.onError,
+      }),
+    [change],
+  )
+
+  const deleteComment = useCallback(
+    (taskId: string, commentId: string, callbacks: { onSuccess: () => void; onError: () => void }) =>
+      change({ type: 'adjustCommentCount', taskId, delta: -1 }, () => api.deleteComment(commentId), callbacks),
+    [change],
+  )
+
   // Messages disappear on their own after a few seconds
   useEffect(() => {
     if (!notice) return
@@ -209,5 +256,11 @@ export function useBoardSync({ onUnauthorized }: { onUnauthorized: () => void })
     moveTask,
     updateTask,
     deleteTask,
+    loadComments,
+    addComment,
+    deleteComment,
   }
 }
+
+export type BoardSync = ReturnType<typeof useBoardSync>
+

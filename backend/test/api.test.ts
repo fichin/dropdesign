@@ -35,13 +35,13 @@ describe('GET /api/boards', () => {
   it('lists the board', async () => {
     const { status, body } = await t.api('GET', '/boards')
     assert.equal(status, 200)
-    assert.deepEqual(body, [{ id: board.id, title: 'Project PlanetX' }])
+    assert.deepEqual(body, [{ id: board.id, title: 'DropDesign' }])
   })
 })
 
 describe('GET /api/boards/:boardId', () => {
   it('returns the whole board in the frontend shape', () => {
-    assert.equal(board.title, 'Project PlanetX')
+    assert.equal(board.title, 'DropDesign')
     assert.deepEqual(titlesByColumn(board), {
       'To Do': ['UI/UX Design', 'Responsive W', 'Blog Copywri', 'Landing page'],
       'In Progress': ['Machine Lear', 'Learn Comput'],
@@ -54,7 +54,8 @@ describe('GET /api/boards/:boardId', () => {
     const ml = board.tasks[ids.task('Machine Learning')]
     assert.deepEqual(
       { priority: ml.priority, progress: ml.progress, comments: ml.commentCount, subtasks: ml.completedSubtaskCount },
-      { priority: 'important', progress: 52, comments: 11, subtasks: 187 },
+      // comments: the real count (none yet), not the mockup's placeholder number
+      { priority: 'important', progress: 52, comments: 0, subtasks: 187 },
     )
     // Assignees come back in their display order
     assert.deepEqual(

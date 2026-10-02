@@ -12,7 +12,9 @@ directly (Node 24's built-in type stripping), so there's no build step.
    never commit it.
 3. `npm run migrate` creates the tables
 4. `npm run seed` loads the sample board (`npm run seed -- --reset` wipes and reloads)
-5. `npm run dev` starts the API on http://localhost:3001 and restarts on changes
+5. `npm run dev` starts the API on http://localhost:3001 and restarts it when a
+   file in `src/` or `../shared/` changes (`scripts/dev.ts`; Node's own `--watch`
+   also reacted to `node_modules` changes reported by antivirus/indexers)
 
 Check it: http://localhost:3001/api/health should return `{"status":"ok","database":"ok"}`.
 
@@ -53,8 +55,8 @@ first-party and nothing above needs to change.
 
 ### Boards and tasks (signed-in only)
 
-Every route below needs a valid session; without one it returns 401
-`Not signed in` before touching the database. Any signed-in user can see and
+Every route below (and the comment routes) needs a valid session; without one it
+returns 401 `Not signed in` before touching the database. Any signed-in user can see and
 change the board (boards don't have owners yet).
 
 | Method | Path | Body | Returns |
@@ -66,6 +68,23 @@ change the board (boards don't have owners yet).
 | PATCH | `/api/tasks/:taskId/move` | `{ toColumnId, toIndex }` | `{ task, columns }`, where `columns` maps each changed column to its new task order |
 | PATCH | `/api/tasks/:taskId` | any of `{ title, description, priority, assigneeIds }` | The updated task. Fields left out don't change; `assigneeIds` is the complete new list in display order (`[]` clears it). 400 for an empty or over-500-character title, a description over 5,000 characters, an unknown priority, an empty body, unknown fields, a person listed twice, or a person who doesn't exist |
 | DELETE | `/api/tasks/:taskId` | | `{ columns }` with the task's column in its new order; the gap it left is closed. 404 if it doesn't exist |
+
+### Comments (signed-in only)
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| GET | `/api/tasks/:taskId/comments` | | The task's comments, oldest first: `{ id, taskId, body, createdAt, author: { id, name, avatarUrl }, authorUserId }`. 404 if the task doesn't exist |
+| POST | `/api/tasks/:taskId/comments` | `{ id, body }` | 201 `{ comment, commentCount }`, written as the signed-in user. `id` comes from the client so a retry can't post twice (200 for the same request again, 409 if the id belongs to a different comment). 400 for an empty or over-2000-character body; 404 if the task doesn't exist |
+| DELETE | `/api/comments/:commentId` | | `{ taskId, commentCount }`. Only the author can delete: 403 otherwise; 404 if it doesn't exist |
+
+Comment authors are people (the assignee table). The first time an account comments,
+the API creates a person for it, linked by `people.user_id`, named from the email
+(`ana.petrova@…` → "Ana Petrova") with an initials avatar generated on the server
+(no third-party avatar service, which would receive the email). That person can then
+also be assigned to tasks.
+
+`tasks.comment_count` is the real number of comments, updated in the same
+transaction as each insert or delete (migration 004 reset the old placeholder numbers).
 
 The board (`GET /api/boards/:boardId`) includes `people`: everyone who can be
 assigned, sorted by name, in the same `{ id, name, avatarUrl }` shape as a task's
@@ -91,7 +110,7 @@ setting.
 
 | Script | What it does |
 |---|---|
-| `npm run dev` | API with auto-restart |
+| `npm run dev` | API with auto-restart on changes in `src/` and `../shared/` |
 | `npm start` | API (production) |
 | `npm run migrate` | Applies new files in `migrations/`, in name order, each in a transaction |
 | `npm run seed` | Loads `shared/sampleBoard.ts` if the database has no boards |
@@ -112,12 +131,15 @@ backend/
     auth/routes.ts       register, login, logout, me
     boards/routes.ts     endpoints + request validation (zod)
     boards/repository.ts SQL for reading boards and adding/moving/editing/deleting tasks
+    comments/routes.ts   comment endpoints + validation
+    comments/repository.ts SQL for comments, the commenter's person, and comment_count
     db/pool.ts           Postgres connection pool + transaction helper
     db/migrations.ts     migration runner (used by migrate.ts and the tests)
     db/migrate.ts        `npm run migrate`
     db/sampleData.ts     inserts the sample board (used by seed.ts and the tests)
     db/seed.ts           `npm run seed`
   test/                  API tests
+  scripts/dev.ts         `npm run dev`: runs the API, restarts it on src/ and ../shared/ changes
 ../shared/         types and sample data used by both frontend and backend
 ```
 

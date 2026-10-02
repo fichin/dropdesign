@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { PRIORITIES, PRIORITY_LABELS, type Assignee, type Column, type Priority, type Task } from '../../shared/kanban.ts'
+import type { User } from '../api/client'
 import type { TaskChanges } from '../state/boardReducer'
-import { CheckCircleIcon, CommentIcon } from './icons'
+import type { BoardSync } from '../state/useBoardSync'
+import { CheckCircleIcon } from './icons'
+import TaskComments from './TaskComments'
 import './TaskModal.css'
 
 const OFFLINE_HINT = "Can't edit while offline"
@@ -16,6 +19,9 @@ interface TaskModalProps {
   onUpdate: (changes: TaskChanges) => void
   onDelete: () => void
   onClose: () => void
+  /** The signed-in user, for "your" comments (unknown while offline) */
+  currentUser?: User
+  comments: Pick<BoardSync, 'loadComments' | 'addComment' | 'deleteComment'>
   /** Rendered inside the dialog (e.g. save-error messages, which would otherwise sit behind it) */
   children?: ReactNode
 }
@@ -25,7 +31,18 @@ interface TaskModalProps {
  * Escape, blocks the page behind it, and returns focus to the card when closed.
  * Changes go through the same optimistic update + rollback path as the rest of the board.
  */
-function TaskModal({ task, column, people, readOnly, onUpdate, onDelete, onClose, children }: TaskModalProps) {
+function TaskModal({
+  task,
+  column,
+  people,
+  readOnly,
+  onUpdate,
+  onDelete,
+  onClose,
+  currentUser,
+  comments,
+  children,
+}: TaskModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   // Text being typed; null when the field isn't being edited (then the task's value shows,
   // so a rolled-back change is visible straight away)
@@ -211,22 +228,24 @@ function TaskModal({ task, column, people, readOnly, onUpdate, onDelete, onClose
           )}
         </section>
 
-        {/* Reserved for upcoming steps */}
         <div className="task-modal-grid">
+          {/* Reserved for an upcoming step */}
           <section className="task-modal-section task-modal-soon">
             <h3 className="task-modal-label">Due date</h3>
             <p>Coming soon</p>
           </section>
-          <section className="task-modal-section task-modal-soon">
-            <h3 className="task-modal-label">
-              <CommentIcon /> Comments ({task.commentCount})
-            </h3>
-            <p>Coming soon</p>
-          </section>
+          <p className="task-modal-subtasks">
+            <CheckCircleIcon /> {task.completedSubtaskCount} completed subtasks
+          </p>
         </div>
-        <p className="task-modal-subtasks">
-          <CheckCircleIcon /> {task.completedSubtaskCount} completed subtasks
-        </p>
+
+        <TaskComments
+          taskId={task.id}
+          commentCount={task.commentCount}
+          currentUser={currentUser}
+          readOnly={readOnly}
+          sync={comments}
+        />
 
         <footer className="task-modal-footer">
           {confirmingDelete ? (

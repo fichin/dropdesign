@@ -30,6 +30,12 @@ export type BoardAction =
       type: 'deleteTask'
       taskId: string
     }
+  | {
+      /** A comment was added (+1) or deleted (-1); the comments themselves live in the modal */
+      type: 'adjustCommentCount'
+      taskId: string
+      delta: number
+    }
 
 export type TaskChanges = Partial<Pick<Task, 'title' | 'description' | 'priority' | 'assignees'>>
 
@@ -143,6 +149,13 @@ export function boardReducer(board: Board, action: BoardAction): Board {
         sameAssignees(next.assignees, task.assignees)
       if (unchanged) return board
       return { ...board, tasks: { ...board.tasks, [task.id]: next } }
+    }
+
+    case 'adjustCommentCount': {
+      const task = board.tasks[action.taskId]
+      if (!task || action.delta === 0) return board
+      const commentCount = Math.max(0, task.commentCount + action.delta)
+      return { ...board, tasks: { ...board.tasks, [task.id]: { ...task, commentCount } } }
     }
 
     case 'deleteTask': {

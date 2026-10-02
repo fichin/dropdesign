@@ -1,4 +1,4 @@
-import { PRIORITIES, TASK_STATUSES, type Board } from '../../shared/kanban.ts'
+import { PRIORITIES, TASK_STATUSES, type Board, type Comment } from '../../shared/kanban.ts'
 
 // A read-only copy of the last board the server confirmed. The server is the source
 // of truth; this only lets the board appear instantly on load, and be viewed offline.
@@ -37,10 +37,48 @@ export function saveCachedBoard(board: Board) {
   }
 }
 
+// Each task's comments are cached separately (they're loaded per task, not with the board),
+// so they can still be read offline
+const COMMENTS_KEY_PREFIX = 'kanban-comments:'
+
+export function loadCachedComments(taskId: string): Comment[] | null {
+  try {
+    const raw = localStorage.getItem(COMMENTS_KEY_PREFIX + taskId)
+    if (raw === null) return null
+    const saved: unknown = JSON.parse(raw)
+    const valid =
+      Array.isArray(saved) &&
+      saved.every(
+        (c) =>
+          isRecord(c) &&
+          isString(c.id) &&
+          c.taskId === taskId &&
+          isString(c.body) &&
+          isString(c.createdAt) &&
+          isPerson(c.author) &&
+          (c.authorUserId === null || isString(c.authorUserId)),
+      )
+    return valid ? (saved as Comment[]) : null
+  } catch {
+    return null
+  }
+}
+
+export function saveCachedComments(taskId: string, comments: Comment[]) {
+  try {
+    localStorage.setItem(COMMENTS_KEY_PREFIX + taskId, JSON.stringify(comments))
+  } catch {
+    // Storage full or blocked: comments just won't be readable offline
+  }
+}
+
 /** On sign-out: the copy shouldn't outlive the session that was allowed to see it */
 export function clearCachedBoard() {
   try {
     localStorage.removeItem(STORAGE_KEY)
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith(COMMENTS_KEY_PREFIX)) localStorage.removeItem(key)
+    }
   } catch {
     // Storage blocked: nothing was cached either
   }

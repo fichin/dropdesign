@@ -15,6 +15,11 @@
   -webkit-touch-callout: none;
 }
 
+/* Read-only (offline): not draggable */
+.card[aria-disabled='true'] {
+  cursor: default;
+}
+
 .card:focus-visible {
   box-shadow: var(--focus-ring);
 }

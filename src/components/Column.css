@@ -63,8 +63,13 @@
   color: var(--slate-600);
 }
 
-.column-add-button:hover {
+.column-add-button:hover:not(:disabled) {
   background: #fff;
+}
+
+.column-add-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .column-add-button svg {

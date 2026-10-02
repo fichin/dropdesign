@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Secrets (e.g. backend/.env holds the database connection string)
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

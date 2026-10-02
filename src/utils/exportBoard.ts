@@ -1,4 +1,4 @@
-import type { Board } from '../types/kanban'
+import type { Board } from '../../shared/kanban.ts'
 
 /** Downloads the board as a JSON file, e.g. "project-planetx-2026-10-02.json" */
 export function exportBoard(board: Board) {

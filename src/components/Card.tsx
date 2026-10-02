@@ -1,5 +1,5 @@
 import type { ComponentPropsWithRef } from 'react'
-import { PRIORITY_LABELS, type Task } from '../types/kanban'
+import { PRIORITY_LABELS, type Task } from '../../shared/kanban.ts'
 import { CheckCircleIcon, CommentIcon } from './icons'
 import './Card.css'
 

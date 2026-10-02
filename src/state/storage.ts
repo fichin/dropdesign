@@ -1,36 +1,39 @@
-import { PRIORITY_LABELS, type Board, type TaskStatus } from '../types/kanban'
+import { PRIORITIES, TASK_STATUSES, type Board } from '../../shared/kanban.ts'
 
+// A read-only copy of the last board the server confirmed. The server is the source
+// of truth; this only lets the board appear instantly on load, and be viewed offline.
 const STORAGE_KEY = 'kanban-board'
-/** Bump when the saved shape changes, and migrate or discard older versions in loadBoard */
-const STORAGE_VERSION = 1
+/**
+ * Bump when the saved shape changes. v1 was the pre-backend local board (sample ids,
+ * no board id), so it's ignored rather than shown as if it came from the server.
+ */
+const STORAGE_VERSION = 2
 
-const STATUSES: TaskStatus[] = ['todo', 'in-progress', 'completed']
-
-/** The saved board, or null when there isn't a usable one (missing, corrupted, or storage blocked) */
-export function loadBoard(): Board | null {
+/** The cached board, or null when there isn't a usable one (missing, outdated, corrupted, or storage blocked) */
+export function loadCachedBoard(): Board | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw === null) return null
 
     const saved: unknown = JSON.parse(raw)
     if (!isRecord(saved) || saved.version !== STORAGE_VERSION || !isBoard(saved.board)) {
-      console.warn('Ignoring saved board: unexpected format')
+      console.warn('Ignoring cached board: unexpected format')
       return null
     }
     return saved.board
   } catch (error) {
     // Invalid JSON, or localStorage itself unavailable (e.g. blocked by browser settings)
-    console.warn('Ignoring saved board:', error)
+    console.warn('Ignoring cached board:', error)
     return null
   }
 }
 
-export function saveBoard(board: Board) {
+export function saveCachedBoard(board: Board) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: STORAGE_VERSION, board }))
   } catch (error) {
-    // Storage full or blocked: keep working, the board just won't survive a reload
-    console.warn('Could not save board:', error)
+    // Storage full or blocked: everything still works, there's just no offline copy
+    console.warn('Could not cache board:', error)
   }
 }
 
@@ -46,7 +49,7 @@ const isNumber = (value: unknown) => typeof value === 'number' && Number.isFinit
  * (e.g. a column pointing at a missing task) falls back instead of crashing a render.
  */
 function isBoard(value: unknown): value is Board {
-  if (!isRecord(value) || !isString(value.title)) return false
+  if (!isRecord(value) || !isString(value.id) || !isString(value.title)) return false
   const { tasks, columns, columnOrder } = value
   if (!isRecord(tasks) || !isRecord(columns) || !Array.isArray(columnOrder)) return false
 
@@ -55,8 +58,7 @@ function isBoard(value: unknown): value is Board {
       isRecord(task) &&
       task.id === id &&
       isString(task.title) &&
-      isString(task.priority) &&
-      task.priority in PRIORITY_LABELS &&
+      PRIORITIES.includes(task.priority as (typeof PRIORITIES)[number]) &&
       isNumber(task.progress) &&
       isNumber(task.commentCount) &&
       isNumber(task.completedSubtaskCount) &&
@@ -75,7 +77,7 @@ function isBoard(value: unknown): value is Board {
       isRecord(column) &&
       column.id === columnId &&
       isString(column.title) &&
-      STATUSES.includes(column.status as TaskStatus) &&
+      TASK_STATUSES.includes(column.status as (typeof TASK_STATUSES)[number]) &&
       Array.isArray(column.taskIds) &&
       column.taskIds.every((taskId) => {
         // Each task must exist and sit in exactly one column

@@ -1,6 +1,11 @@
-export type TaskStatus = 'todo' | 'in-progress' | 'completed'
+// Shared by the frontend (src/) and the backend (backend/). The backend's database
+// CHECK constraints list the same values: keep backend/migrations in sync.
 
-export type Priority = 'high-priority' | 'important' | 'ok' | 'meh' | 'not-important'
+export const TASK_STATUSES = ['todo', 'in-progress', 'completed'] as const
+export type TaskStatus = (typeof TASK_STATUSES)[number]
+
+export const PRIORITIES = ['high-priority', 'important', 'ok', 'meh', 'not-important'] as const
+export type Priority = (typeof PRIORITIES)[number]
 
 export const PRIORITY_LABELS: Record<Priority, string> = {
   'high-priority': 'High Priority',
@@ -42,6 +47,7 @@ export interface Column {
 }
 
 export interface Board {
+  id: string
   title: string
   tasks: Record<string, Task>
   columns: Record<string, Column>

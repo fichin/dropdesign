@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/core'
 import { useState } from 'react'
 import { boardReducer, findColumnId } from '../state/boardReducer'
-import type { Board as BoardType } from '../types/kanban'
+import type { Board as BoardType } from '../../shared/kanban.ts'
 import Card from './Card'
 import Column from './Column'
 import { kanbanKeyboardCoordinates } from './keyboardCoordinates'
@@ -24,11 +24,13 @@ import './Board.css'
 
 interface BoardProps {
   board: BoardType
+  /** Showing a cached copy (offline or still connecting): no dragging or adding */
+  readOnly: boolean
   onAddTask: (columnId: string, title: string) => void
   onMoveTask: (taskId: string, toColumnId: string, toIndex: number) => void
 }
 
-function Board({ board, onAddTask, onMoveTask }: BoardProps) {
+function Board({ board, readOnly, onAddTask, onMoveTask }: BoardProps) {
   // While dragging, cards are rearranged in this preview copy so the lists make room
   // as you go. The real board only receives a single moveTask on drop, and cancelling
   // (Esc, or dropping outside every column) just discards the preview.
@@ -152,6 +154,7 @@ function Board({ board, onAddTask, onMoveTask }: BoardProps) {
                 column={column}
                 tasks={tasks}
                 isDropTarget={overColumnId === column.id}
+                readOnly={readOnly}
                 onAddTask={onAddTask}
               />
             )

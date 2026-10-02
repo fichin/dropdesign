@@ -1,4 +1,4 @@
-import type { Assignee } from '../types/kanban'
+import type { Assignee } from '../../shared/kanban.ts'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

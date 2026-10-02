@@ -1,6 +1,7 @@
-import type { Assignee, Board, Task } from '../types/kanban'
+import type { Assignee, Board, Task } from './kanban.ts'
 
-// Mirrors the cards in the Figma design so the two can be compared side by side
+// Mirrors the cards in the Figma design so the two can be compared side by side.
+// Used by the frontend as its fallback board and by backend/src/db/seed.ts.
 const people: Assignee[] = [
   { id: 'u1', name: 'Ana Petrova', avatarUrl: 'https://i.pravatar.cc/64?img=5' },
   { id: 'u2', name: 'Marko Ilievski', avatarUrl: 'https://i.pravatar.cc/64?img=12' },
@@ -121,6 +122,8 @@ const tasks: Task[] = [
 ]
 
 export const initialBoard: Board = {
+  // Placeholder: the seed script gives the board (and everything in it) real UUIDs
+  id: 'sample-board',
   title: 'Project PlanetX',
   tasks: Object.fromEntries(tasks.map((task) => [task.id, task])),
   columns: {

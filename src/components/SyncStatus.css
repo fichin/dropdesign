@@ -1,0 +1,131 @@
+.status-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 32px;
+  border-bottom: 1px solid var(--indigo-100);
+  background: var(--indigo-50);
+  color: var(--slate-700);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-banner-offline {
+  border-bottom-color: #fde68a;
+  background: var(--amber-50);
+}
+
+.status-banner .button-secondary {
+  margin-left: auto;
+  padding: 4px 12px;
+}
+
+.status-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: status-pulse 1.4s ease-in-out infinite;
+}
+
+.status-banner-offline .status-dot {
+  background: var(--amber-500);
+  animation: none;
+}
+
+@keyframes status-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Save errors: bottom of the screen, above everything */
+.notice-region {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+  padding: 12px 12px 12px 16px;
+  border-radius: 12px;
+  background: var(--slate-800);
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 10px 25px -5px rgb(15 23 42 / 0.3);
+  pointer-events: auto;
+}
+
+.notice-dismiss {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--slate-400);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.notice-dismiss:hover {
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+}
+
+/* No board to show yet */
+.board-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 60vh;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.board-placeholder h1 {
+  color: var(--text);
+  font-size: 20px;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--slate-200);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-dot,
+  .spinner {
+    animation-duration: 3s;
+  }
+}
+
+@media (max-width: 767px) {
+  .status-banner {
+    padding: 10px 16px;
+  }
+}

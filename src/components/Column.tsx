@@ -1,7 +1,7 @@
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useState } from 'react'
-import type { Column as ColumnType, Task } from '../types/kanban'
+import type { Column as ColumnType, Task } from '../../shared/kanban.ts'
 import AddTaskForm from './AddTaskForm'
 import { PlusIcon } from './icons'
 import SortableCard from './SortableCard'
@@ -12,10 +12,12 @@ interface ColumnProps {
   tasks: Task[]
   /** A dragged card is over this column and would land here */
   isDropTarget: boolean
+  /** Showing a cached copy: no dragging or adding */
+  readOnly: boolean
   onAddTask: (columnId: string, title: string) => void
 }
 
-function Column({ column, tasks, isDropTarget, onAddTask }: ColumnProps) {
+function Column({ column, tasks, isDropTarget, readOnly, onAddTask }: ColumnProps) {
   const [isAdding, setIsAdding] = useState(false)
   // The whole column is a drop zone, so cards can be dropped into an empty column too.
   // type/taskIds are read by keyboard navigation (see keyboardCoordinates.ts)
@@ -40,7 +42,9 @@ function Column({ column, tasks, isDropTarget, onAddTask }: ColumnProps) {
           type="button"
           className="column-add-button"
           aria-label={`Add task to ${column.title}`}
-          aria-expanded={isAdding}
+          aria-expanded={isAdding && !readOnly}
+          disabled={readOnly}
+          title={readOnly ? "Can't add tasks while offline" : undefined}
           onClick={() => setIsAdding(true)}
         >
           <PlusIcon />
@@ -48,7 +52,7 @@ function Column({ column, tasks, isDropTarget, onAddTask }: ColumnProps) {
       </header>
 
       <div className="column-tasks">
-        {isAdding && (
+        {isAdding && !readOnly && (
           <AddTaskForm
             onAdd={(title) => onAddTask(column.id, title)}
             onClose={() => setIsAdding(false)}
@@ -56,7 +60,7 @@ function Column({ column, tasks, isDropTarget, onAddTask }: ColumnProps) {
         )}
         <SortableContext id={column.id} items={column.taskIds} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <SortableCard key={task.id} task={task} />
+            <SortableCard key={task.id} task={task} disabled={readOnly} />
           ))}
         </SortableContext>
       </div>

@@ -1,15 +1,17 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { Task } from '../types/kanban'
+import type { Task } from '../../shared/kanban.ts'
 import Card from './Card'
 
 interface SortableCardProps {
   task: Task
+  disabled?: boolean
 }
 
-function SortableCard({ task }: SortableCardProps) {
+function SortableCard({ task, disabled = false }: SortableCardProps) {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: task.id,
+    disabled,
   })
 
   return (

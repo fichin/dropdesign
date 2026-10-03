@@ -103,6 +103,72 @@ describe('PATCH /api/tasks/:taskId', () => {
   })
 })
 
+describe('due dates (PATCH /api/tasks/:taskId)', () => {
+  it('starts without one, can be set, and shows up in board reads', async () => {
+    const task = ids.task('Machine Learning')
+    assert.equal(board.tasks[task].dueDate, null)
+
+    const { status, body } = await update(task, { dueDate: '2026-10-15' })
+    assert.equal(status, 200)
+    assert.equal(body.dueDate, '2026-10-15', 'comes back exactly as sent, with no time or timezone shift')
+    assert.equal((await getBoard()).tasks[task].dueDate, '2026-10-15')
+  })
+
+  it('can be changed and cleared with null', async () => {
+    const task = ids.task('UI/UX')
+    await update(task, { dueDate: '2026-10-15' })
+    assert.equal((await update(task, { dueDate: '2027-01-02' })).body.dueDate, '2027-01-02')
+
+    const cleared = await update(task, { dueDate: null })
+    assert.equal(cleared.status, 200)
+    assert.equal(cleared.body.dueDate, null)
+    assert.equal((await getBoard()).tasks[task].dueDate, null)
+  })
+
+  it('leaves the due date alone when other fields change, and vice versa', async () => {
+    const task = ids.task('Learn Computer')
+    await update(task, { dueDate: '2026-12-24' })
+    const renamed = await update(task, { title: 'Learn CS' })
+    assert.equal(renamed.body.dueDate, '2026-12-24')
+
+    const before = (await getBoard()).tasks[task]
+    const dated = await update(task, { dueDate: '2026-12-31' })
+    assert.deepEqual({ ...dated.body, dueDate: before.dueDate }, before, 'only the due date changed')
+  })
+
+  it('survives moving the task', async () => {
+    const task = ids.task('UI/UX')
+    await update(task, { dueDate: '2026-11-05' })
+    const moved = await t.api('PATCH', `/tasks/${task}/move`, { toColumnId: ids.column('Completed'), toIndex: 0 })
+    assert.equal(moved.body.task.dueDate, '2026-11-05')
+  })
+
+  it('accepts 29 February only in leap years', async () => {
+    const task = ids.task('UI/UX')
+    assert.equal((await update(task, { dueDate: '2028-02-29' })).status, 200)
+    assert.equal((await update(task, { dueDate: '2027-02-29' })).status, 400)
+  })
+
+  it('rejects anything that is not a real YYYY-MM-DD date, without changing the task', async () => {
+    const task = ids.task('UI/UX')
+    await update(task, { dueDate: '2026-10-15' })
+    const invalid: unknown[] = [
+      '2026-02-30',
+      '2026-13-01',
+      '15/10/2026',
+      '2026-10-15T00:00:00Z',
+      'tomorrow',
+      '',
+      20261015,
+      true,
+    ]
+    for (const dueDate of invalid) {
+      assert.equal((await update(task, { dueDate })).status, 400, JSON.stringify(dueDate))
+    }
+    assert.equal((await getBoard()).tasks[task].dueDate, '2026-10-15')
+  })
+})
+
 describe('DELETE /api/tasks/:taskId', () => {
   it('deletes the task and closes the gap in its column', async () => {
     const todo = ids.column('To Do')

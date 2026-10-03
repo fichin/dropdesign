@@ -3,6 +3,7 @@ import { PRIORITIES, PRIORITY_LABELS, type Assignee, type Column, type Priority,
 import type { User } from '../api/client'
 import type { TaskChanges } from '../state/boardReducer'
 import type { BoardSync } from '../state/useBoardSync'
+import { isOverdue } from '../utils/dates'
 import { CheckCircleIcon } from './icons'
 import TaskComments from './TaskComments'
 import './TaskModal.css'
@@ -48,6 +49,9 @@ function TaskModal({
   // so a rolled-back change is visible straight away)
   const [titleDraft, setTitleDraft] = useState<string | null>(null)
   const [descriptionDraft, setDescriptionDraft] = useState<string | null>(null)
+  // What the date input holds while it's being edited (it can be incomplete, e.g. while
+  // typing a year it passes through 0002, 0020, 0202 before 2026)
+  const [dueDateDraft, setDueDateDraft] = useState<string | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const cancelDeleteRef = useRef<HTMLButtonElement>(null)
 
@@ -75,10 +79,25 @@ function TaskModal({
     setDescriptionDraft(null)
   }
 
+  /** A whole date with a sensible year: save it straight away (picking from the calendar lands here) */
+  function changeDueDate(value: string) {
+    setDueDateDraft(value)
+    const complete = /^\d{4}-\d{2}-\d{2}$/.test(value) && Number(value.slice(0, 4)) >= 1900
+    if (complete && value !== task.dueDate) onUpdate({ dueDate: value })
+  }
+
+  /** Leaving the field: an emptied field clears the date; anything incomplete reverts */
+  function commitDueDate() {
+    if (dueDateDraft === null) return
+    if (dueDateDraft === '' && task.dueDate !== null) onUpdate({ dueDate: null })
+    setDueDateDraft(null)
+  }
+
   /** X, Escape, or a click outside: keep anything typed, then close */
   function close() {
     saveTitle()
     saveDescription()
+    commitDueDate()
     onClose()
   }
 
@@ -229,10 +248,40 @@ function TaskModal({
         </section>
 
         <div className="task-modal-grid">
-          {/* Reserved for an upcoming step */}
-          <section className="task-modal-section task-modal-soon">
-            <h3 className="task-modal-label">Due date</h3>
-            <p>Coming soon</p>
+          <section className="task-modal-section">
+            <label className="task-modal-label" htmlFor="task-due-date">
+              Due date
+              {task.dueDate && task.progress < 100 && isOverdue(task.dueDate) && (
+                <span className="task-modal-overdue">Overdue</span>
+              )}
+            </label>
+            <div className="task-modal-due">
+              <input
+                id="task-due-date"
+                type="date"
+                className="task-modal-select task-modal-date"
+                min="1900-01-01"
+                max="9999-12-31"
+                value={dueDateDraft ?? task.dueDate ?? ''}
+                onChange={(event) => changeDueDate(event.target.value)}
+                onBlur={commitDueDate}
+                {...editDisabled}
+              />
+              {task.dueDate && (
+                <button
+                  type="button"
+                  className="task-modal-clear-date"
+                  aria-label="Clear due date"
+                  onClick={() => {
+                    setDueDateDraft(null)
+                    onUpdate({ dueDate: null })
+                  }}
+                  {...editDisabled}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </section>
           <p className="task-modal-subtasks">
             <CheckCircleIcon /> {task.completedSubtaskCount} completed subtasks

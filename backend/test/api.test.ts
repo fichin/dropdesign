@@ -91,6 +91,7 @@ describe('POST /api/boards/:boardId/tasks', () => {
       id,
       title: 'New task',
       description: '',
+      dueDate: null,
       priority: 'ok',
       progress: 0,
       assignees: [],

@@ -37,7 +37,7 @@ export type BoardAction =
       delta: number
     }
 
-export type TaskChanges = Partial<Pick<Task, 'title' | 'description' | 'priority' | 'assignees'>>
+export type TaskChanges = Partial<Pick<Task, 'title' | 'description' | 'priority' | 'dueDate' | 'assignees'>>
 
 const sameAssignees = (a: Task['assignees'], b: Task['assignees']) =>
   a.length === b.length && a.every((person, i) => person.id === b[i].id)
@@ -72,6 +72,7 @@ export function boardReducer(board: Board, action: BoardAction): Board {
         id: action.taskId,
         title,
         description: '',
+        dueDate: null,
         priority: 'ok',
         progress: column.status === 'completed' ? 100 : 0,
         assignees: [],
@@ -132,7 +133,7 @@ export function boardReducer(board: Board, action: BoardAction): Board {
     case 'updateTask': {
       const task = board.tasks[action.taskId]
       if (!task) return board
-      const { title, description, priority, assignees } = action.changes
+      const { title, description, priority, dueDate, assignees } = action.changes
       // Same rule as the server: titles are trimmed and can't be empty
       const trimmedTitle = title?.trim()
       const next: Task = {
@@ -140,12 +141,15 @@ export function boardReducer(board: Board, action: BoardAction): Board {
         ...(trimmedTitle && { title: trimmedTitle }),
         ...(description !== undefined && { description }),
         ...(priority && { priority }),
+        // null is a real value here: it clears the due date
+        ...(dueDate !== undefined && { dueDate }),
         ...(assignees && { assignees }),
       }
       const unchanged =
         next.title === task.title &&
         next.description === task.description &&
         next.priority === task.priority &&
+        next.dueDate === task.dueDate &&
         sameAssignees(next.assignees, task.assignees)
       if (unchanged) return board
       return { ...board, tasks: { ...board.tasks, [task.id]: next } }

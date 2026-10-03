@@ -14,8 +14,8 @@ const people: Assignee[] = [
 
 const team = (count: number) => people.slice(0, count)
 
-// Descriptions start empty; they're added in the task detail modal
-const sampleTasks: Omit<Task, 'description'>[] = [
+// Descriptions and due dates start empty; they're added in the task detail modal
+const sampleTasks: Omit<Task, 'description' | 'dueDate'>[] = [
   // To Do
   {
     id: 't1',
@@ -121,7 +121,7 @@ const sampleTasks: Omit<Task, 'description'>[] = [
     completedSubtaskCount: 11,
   },
 ]
-const tasks: Task[] = sampleTasks.map((task) => ({ ...task, description: '' }))
+const tasks: Task[] = sampleTasks.map((task) => ({ ...task, description: '', dueDate: null }))
 
 export const initialBoard: Board = {
   // Placeholder: the seed script gives the board (and everything in it) real UUIDs

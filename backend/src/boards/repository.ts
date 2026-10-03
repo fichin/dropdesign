@@ -10,6 +10,8 @@ interface TaskRow {
   column_id: string
   title: string
   description: string
+  /** "YYYY-MM-DD" text (cast in SQL), so pg doesn't turn it into a timezone-shifted Date */
+  due_date: string | null
   priority: Priority
   progress: number
   comment_count: number
@@ -19,7 +21,8 @@ interface TaskRow {
 
 // Tasks with their assignees (in display order) as a JSON array
 const TASK_SELECT = `
-  SELECT t.id, t.column_id, t.title, t.description, t.priority, t.progress, t.comment_count, t.completed_subtask_count,
+  SELECT t.id, t.column_id, t.title, t.description, t.due_date::text AS due_date, t.priority, t.progress,
+         t.comment_count, t.completed_subtask_count,
          COALESCE(
            json_agg(json_build_object('id', p.id, 'name', p.name, 'avatarUrl', p.avatar_url) ORDER BY ta.position)
              FILTER (WHERE p.id IS NOT NULL),
@@ -34,6 +37,7 @@ const toTask = (row: TaskRow): Task => ({
   id: row.id,
   title: row.title,
   description: row.description,
+  dueDate: row.due_date,
   priority: row.priority,
   progress: row.progress,
   assignees: row.assignees,
@@ -227,6 +231,8 @@ export interface UpdateTaskInput {
   title?: string
   description?: string
   priority?: Priority
+  /** "YYYY-MM-DD", or null to clear it */
+  dueDate?: string | null
   /** The complete new list of assignees, in display order (replaces the current one) */
   assigneeIds?: string[]
 }
@@ -236,7 +242,14 @@ export async function updateTask(pool: pg.Pool, taskId: string, input: UpdateTas
   return withTransaction(pool, async (client) => {
     await lockBoard(client, await boardOfTask(client, taskId))
 
-    const fields = { title: input.title, description: input.description, priority: input.priority }
+    // Keys are column names (fixed here, never from input); values are query parameters.
+    // null is a real value (clears due_date); undefined means "not sent, leave as is"
+    const fields = {
+      title: input.title,
+      description: input.description,
+      priority: input.priority,
+      due_date: input.dueDate,
+    }
     const sets = Object.entries(fields).filter(([, value]) => value !== undefined)
     await client.query(
       `UPDATE tasks SET ${[...sets.map(([name], i) => `${name} = $${i + 2}`), 'updated_at = now()'].join(', ')}

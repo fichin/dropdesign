@@ -188,12 +188,13 @@ export function useBoardSync({ onUnauthorized }: { onUnauthorized: () => void })
 
   const updateTask = useCallback(
     (taskId: string, changes: TaskChanges) => {
-      const { title, description, priority, assignees } = changes
+      const { title, description, priority, dueDate, assignees } = changes
       change({ type: 'updateTask', taskId, changes }, () =>
         api.updateTask(taskId, {
           ...(title !== undefined && { title: title.trim() }),
           ...(description !== undefined && { description }),
           ...(priority && { priority }),
+          ...(dueDate !== undefined && { dueDate }),
           ...(assignees && { assigneeIds: assignees.map((person) => person.id) }),
         }),
       )

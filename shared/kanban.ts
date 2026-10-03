@@ -31,6 +31,11 @@ export interface Task {
   title: string
   /** Longer text shown in the task detail modal; '' when there is none */
   description: string
+  /**
+   * Calendar date as "YYYY-MM-DD", or null. Deliberately not a Date/timestamp: a due date
+   * has no time, and converting it would shift it by a day in some timezones
+   */
+  dueDate: string | null
   /** Colors come from the stylesheet, keyed by priority */
   priority: Priority
   /** 0–100 */

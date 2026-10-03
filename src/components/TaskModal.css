@@ -237,6 +237,54 @@ body:has(.task-modal[open]) {
   font-size: 13px;
 }
 
+/* Due date */
+.task-modal-due {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-modal-date {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 14px;
+}
+
+.task-modal-date:focus-visible {
+  border-color: var(--primary);
+}
+
+.task-modal-clear-date {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--slate-600);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.task-modal-clear-date:hover:not(:disabled) {
+  background: var(--slate-100);
+}
+
+.task-modal-clear-date:disabled,
+.task-modal-date:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.task-modal-overdue {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--rose-50);
+  color: #be123c;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .task-modal-subtasks {
   display: flex;
   align-items: center;

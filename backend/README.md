@@ -66,7 +66,7 @@ change the board (boards don't have owners yet).
 | GET | `/api/boards/:boardId` | | The whole board (`Board` in `shared/kanban.ts`) |
 | POST | `/api/boards/:boardId/tasks` | `{ id, columnId, title }` | The task; 201 when created, 200 if that exact task already exists (a retry), 409 if the id belongs to a different task |
 | PATCH | `/api/tasks/:taskId/move` | `{ toColumnId, toIndex }` | `{ task, columns }`, where `columns` maps each changed column to its new task order |
-| PATCH | `/api/tasks/:taskId` | any of `{ title, description, priority, assigneeIds }` | The updated task. Fields left out don't change; `assigneeIds` is the complete new list in display order (`[]` clears it). 400 for an empty or over-500-character title, a description over 5,000 characters, an unknown priority, an empty body, unknown fields, a person listed twice, or a person who doesn't exist |
+| PATCH | `/api/tasks/:taskId` | any of `{ title, description, priority, dueDate, assigneeIds }` | The updated task. Fields left out don't change; `dueDate` is `"YYYY-MM-DD"` or `null` to clear it; `assigneeIds` is the complete new list in display order (`[]` clears it). 400 for an empty or over-500-character title, a description over 5,000 characters, an unknown priority, a due date that isn't a real `YYYY-MM-DD` date (e.g. `2026-02-30`, or a timestamp), an empty body, unknown fields, a person listed twice, or a person who doesn't exist |
 | DELETE | `/api/tasks/:taskId` | | `{ columns }` with the task's column in its new order; the gap it left is closed. 404 if it doesn't exist |
 
 ### Comments (signed-in only)
@@ -88,7 +88,10 @@ transaction as each insert or delete (migration 004 reset the old placeholder nu
 
 The board (`GET /api/boards/:boardId`) includes `people`: everyone who can be
 assigned, sorted by name, in the same `{ id, name, avatarUrl }` shape as a task's
-assignees. Tasks include `description` (`''` when there is none).
+assignees. Tasks include `description` (`''` when there is none) and `dueDate`
+(`"YYYY-MM-DD"` or `null`). Due dates are plain calendar dates with no time or
+timezone: the API sends them as text (`due_date::text`) rather than letting `pg`
+turn them into `Date` objects, which would shift them by a day in some timezones.
 
 Rules the server enforces: new tasks go on top of their column; a task arriving in
 a Completed column (added or moved) gets progress 100; `toIndex` past the end of a

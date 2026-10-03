@@ -75,7 +75,14 @@ export const api = {
     request<{ task: Task; columns: Record<string, string[]> }>('PATCH', `/tasks/${taskId}/move`, move),
   updateTask: (
     taskId: string,
-    changes: { title?: string; description?: string; priority?: Priority; assigneeIds?: string[] },
+    changes: {
+      title?: string
+      description?: string
+      priority?: Priority
+      /** "YYYY-MM-DD", or null to clear */
+      dueDate?: string | null
+      assigneeIds?: string[]
+    },
   ) => request<Task>('PATCH', `/tasks/${taskId}`, changes),
   deleteTask: (taskId: string) => request<{ columns: Record<string, string[]> }>('DELETE', `/tasks/${taskId}`),
   listComments: (taskId: string) => request<Comment[]>('GET', `/tasks/${taskId}/comments`),

@@ -23,6 +23,8 @@ const updateTaskBody = z
     title: z.string().trim().min(1, 'Title is required').max(500),
     description: z.string().max(5000),
     priority: z.enum(PRIORITIES),
+    // A real calendar date as YYYY-MM-DD (no time); null clears it
+    dueDate: z.iso.date('Use a real date in YYYY-MM-DD format').nullable(),
     assigneeIds: z
       .array(z.uuid())
       .max(50)

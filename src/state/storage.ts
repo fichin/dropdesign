@@ -6,8 +6,9 @@ const STORAGE_KEY = 'kanban-board'
 /**
  * Bump when the saved shape changes; older copies are ignored (the server has the real
  * board). v1: pre-backend local board. v2: no task descriptions or people list.
+ * v3: no due dates.
  */
-const STORAGE_VERSION = 3
+const STORAGE_VERSION = 4
 
 /** The cached board, or null when there isn't a usable one (missing, outdated, corrupted, or storage blocked) */
 export function loadCachedBoard(): Board | null {
@@ -109,6 +110,7 @@ function isBoard(value: unknown): value is Board {
       task.id === id &&
       isString(task.title) &&
       isString(task.description) &&
+      (task.dueDate === null || (isString(task.dueDate) && /^\d{4}-\d{2}-\d{2}$/.test(task.dueDate as string))) &&
       PRIORITIES.includes(task.priority as (typeof PRIORITIES)[number]) &&
       isNumber(task.progress) &&
       isNumber(task.commentCount) &&

@@ -135,7 +135,11 @@ export function useBoardSync({ onUnauthorized }: { onUnauthorized: () => void })
           return
         }
         try {
-          callbacks.onSuccess?.(await send())
+          // Send first, then notify. Not `callbacks.onSuccess?.(await send())`: optional
+          // call skips evaluating its argument when onSuccess is undefined, so send()
+          // would never run for changes without callbacks (every non-comment change)
+          const result = await send()
+          callbacks.onSuccess?.(result)
           // The server applies the same rules as the reducer, so this matches its state
           if (confirmed.current) {
             confirmed.current = boardReducer(confirmed.current, action)

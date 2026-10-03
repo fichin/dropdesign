@@ -25,6 +25,13 @@ export class ApiError extends Error {
 
 const UNREACHABLE_MESSAGE = 'Could not reach the server'
 
+/**
+ * Give up on a request after this long. Without a limit, one request that never answers
+ * would hold up the board's save queue forever: later changes would show on screen but
+ * never be saved, with no message. A timeout fails it like a lost connection instead.
+ */
+const REQUEST_TIMEOUT_MS = 15_000
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   let res: Response
   try {
@@ -34,8 +41,10 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
       credentials: 'include',
       headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
   } catch {
+    // No connection, or no answer in time
     throw new ApiError(0, UNREACHABLE_MESSAGE)
   }
   const data = await res.json().catch(() => null)

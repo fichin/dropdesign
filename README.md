@@ -1,32 +1,98 @@
-# React + TypeScript + Vite
+# DropDesign
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A full-stack Kanban board for small teams: drag tasks between columns, track progress and
+due dates, discuss tasks in comments, and find anything with search and filters. React +
+TypeScript on the front, Express + PostgreSQL behind it, with accounts, light and dark
+themes, and an accessibility pass on every screen.
 
-Currently, two official plugins are available:
+![DropDesign demo: logging in, dragging a task to In Progress, commenting on it, switching to dark mode and filtering the board](docs/demo.gif)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Kanban board**: three columns, drag-and-drop with mouse, touch (press and hold) or keyboard (Space, arrows, Space)
+- **Task details**: title, description, priority, assignees, due dates with overdue highlighting, delete with confirmation
+- **Comments** on every task, shown instantly while they save
+- **Search and filters**: live search with highlighted matches, priority/assignee/overdue filters, <kbd>Ctrl</kbd>+<kbd>K</kbd> or <kbd>/</kbd> to search
+- **Accounts**: register and log in; sessions in an httpOnly cookie
+- **Optimistic saving**: changes appear immediately and are saved in order; if the server rejects one, the board reloads and says why
+- **Offline copy**: the last saved board stays viewable (read-only) when the server can't be reached
+- **Dark mode**: follows the system setting until you choose, remembers the choice, no flash on load
+- **Accessibility**: text contrast measured at WCAG AA in both themes, screen reader announcements for drag-and-drop, focus handled in dialogs and menus
+- **Responsive** down to 360px phones, and **Export** of the board as JSON
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Screenshots
 
-## Expanding the Oxlint configuration
+| | Board | Log in |
+|---|---|---|
+| **Light** | ![Board in light mode](docs/screenshots/board-light.png) | ![Login page in light mode](docs/screenshots/login-light.png) |
+| **Dark** | ![Board in dark mode](docs/screenshots/board-dark.png) | ![Login page in dark mode](docs/screenshots/login-dark.png) |
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Tech stack
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+| | |
+|---|---|
+| **Frontend** | React 19, TypeScript, Vite, dnd-kit, plain CSS with design tokens |
+| **Backend** | Node 24, Express 5, PostgreSQL (`pg`), zod validation, bcrypt, JWT (jose) |
+| **Tests** | Vitest + React Testing Library (frontend), `node:test` against a real database (backend) |
+| **Tooling** | oxlint, SQL migrations, a shared `shared/` folder for types used by both sides |
+
+## Running locally
+
+You need **Node 24+** and a **PostgreSQL** database. A free [Neon](https://neon.tech)
+project works, as does a local Postgres.
+
+```bash
+# 1. Backend: configure, create the tables, load the sample board, start the API (port 3001)
+cd backend
+npm install
+cp .env.example .env        # then fill in the values below
+npm run migrate
+npm run seed
+npm run dev
+
+# 2. Frontend, in a second terminal from the project root (port 5173)
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Open http://localhost:5173 and create an account. In development, Vite forwards `/api`
+to the backend, so no CORS setup is needed.
+
+**Backend environment** (`backend/.env`, never committed; `.env.example` explains each one):
+
+| Variable | What it is |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `JWT_SECRET` | Random string (32+ characters) that signs session cookies |
+| `TEST_DATABASE_URL` | Database for the backend tests (each run uses its own throwaway schema) |
+| `PORT`, `CORS_ORIGIN`, `NODE_ENV` | Defaults work locally: `3001`, `http://localhost:5173`, `development` |
+
+The frontend needs no configuration locally. For a deployment where the API lives on
+another origin, set `VITE_API_URL` at build time.
+
+## Tests
+
+```bash
+npm test                 # frontend: 92 tests (Vitest)
+npm run coverage         # with a coverage report
+cd backend && npm test   # backend: 60 tests against TEST_DATABASE_URL
+```
+
+The frontend tests focus on the logic that's easiest to break without noticing: the save
+queue and rollback, theme persistence (including the no-flash script in `index.html`),
+filters, drag-and-drop state, and the task modal and comments.
+
+## Project layout
+
+```
+src/            React app: components/, state/ (reducer, sync, filters, theme), api/
+backend/        Express API, SQL migrations, tests (details in backend/README.md)
+shared/         Types and sample data used by both
+docs/           Demo GIF and screenshots
+```
+
+## Not built yet
+
+- **Live updates**: other people's changes appear when you reload (no websockets yet)
+- **List, Column and Row views**, and **Invite**: shown in the header, not wired up
+- **Password reset**

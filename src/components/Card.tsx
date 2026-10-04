@@ -1,6 +1,7 @@
 import type { ComponentPropsWithRef } from 'react'
 import { PRIORITY_LABELS, type Task } from '../../shared/kanban.ts'
 import { formatDueDate, formatDueDateLong, isOverdue } from '../utils/dates'
+import Highlight from './Highlight'
 import { CalendarIcon, CheckCircleIcon, CommentIcon } from './icons'
 import './Card.css'
 
@@ -31,9 +32,11 @@ function DueDate({ date, done }: { date: string; done: boolean }) {
 
 interface CardProps extends ComponentPropsWithRef<'article'> {
   task: Task
+  /** Lowercased search text to highlight in the title */
+  search?: string
 }
 
-function Card({ task, className, ...articleProps }: CardProps) {
+function Card({ task, search = '', className, ...articleProps }: CardProps) {
   const visibleAssignees = task.assignees.slice(0, MAX_VISIBLE_ASSIGNEES)
   const hiddenCount = task.assignees.length - visibleAssignees.length
   const isDone = task.progress >= 100
@@ -47,7 +50,9 @@ function Card({ task, className, ...articleProps }: CardProps) {
         {task.dueDate && <DueDate date={task.dueDate} done={isDone} />}
       </div>
 
-      <h3 className="card-title">{task.title}</h3>
+      <h3 className="card-title">
+        <Highlight text={task.title} search={search} />
+      </h3>
 
       <div className="card-progress">
         <div className="card-progress-labels">

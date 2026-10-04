@@ -77,6 +77,19 @@
   height: 18px;
 }
 
+/* No task in this column matches the search/filters */
+.column-empty {
+  display: grid;
+  place-items: center;
+  min-height: 64px;
+  padding: 12px;
+  border: 1px dashed var(--slate-200);
+  border-radius: 12px;
+  color: var(--slate-400);
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .column-tasks {
   display: flex;
   flex-direction: column;

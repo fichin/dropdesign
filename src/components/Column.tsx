@@ -9,7 +9,12 @@ import './Column.css'
 
 interface ColumnProps {
   column: ColumnType
+  /** The tasks to show: all of them, or those matching the search and filters */
   tasks: Task[]
+  /** Search or filters are active (so some tasks may be hidden) */
+  filtering: boolean
+  /** Lowercased search text to highlight in card titles */
+  search: string
   /** A dragged card is over this column and would land here */
   isDropTarget: boolean
   /** Showing a cached copy: no dragging or adding */
@@ -18,7 +23,7 @@ interface ColumnProps {
   onOpenTask: (taskId: string) => void
 }
 
-function Column({ column, tasks, isDropTarget, readOnly, onAddTask, onOpenTask }: ColumnProps) {
+function Column({ column, tasks, filtering, search, isDropTarget, readOnly, onAddTask, onOpenTask }: ColumnProps) {
   const [isAdding, setIsAdding] = useState(false)
   // The whole column is a drop zone, so cards can be dropped into an empty column too.
   // type/taskIds are read by keyboard navigation (see keyboardCoordinates.ts)
@@ -37,7 +42,10 @@ function Column({ column, tasks, isDropTarget, readOnly, onAddTask, onOpenTask }
     >
       <header className="column-header">
         <h2 id={titleId} className="column-title">
-          {column.title} <span className="column-count">({tasks.length})</span>
+          {column.title}{' '}
+          <span className="column-count">
+            ({filtering ? `${tasks.length} of ${column.taskIds.length}` : column.taskIds.length})
+          </span>
         </h2>
         <button
           type="button"
@@ -59,11 +67,14 @@ function Column({ column, tasks, isDropTarget, readOnly, onAddTask, onOpenTask }
             onClose={() => setIsAdding(false)}
           />
         )}
-        <SortableContext id={column.id} items={column.taskIds} strategy={verticalListSortingStrategy}>
+        {/* Only the shown cards are sortable: dnd-kit's items must match what's rendered.
+            Where a dropped card lands is worked out against the full column in Board */}
+        <SortableContext id={column.id} items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <SortableCard key={task.id} task={task} disabled={readOnly} onOpen={onOpenTask} />
+            <SortableCard key={task.id} task={task} disabled={readOnly} onOpen={onOpenTask} search={search} />
           ))}
         </SortableContext>
+        {filtering && tasks.length === 0 && <p className="column-empty">No matching tasks</p>}
       </div>
     </section>
   )

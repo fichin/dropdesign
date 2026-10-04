@@ -9,9 +9,11 @@ interface SortableCardProps {
   disabled?: boolean
   /** Click or Enter: open the task detail modal */
   onOpen: (taskId: string) => void
+  /** Lowercased search text to highlight */
+  search?: string
 }
 
-function SortableCard({ task, disabled = false, onOpen }: SortableCardProps) {
+function SortableCard({ task, disabled = false, onOpen, search }: SortableCardProps) {
   const { setNodeRef, attributes, listeners, transform, transition, isDragging, active } = useSortable({
     id: task.id,
     disabled,
@@ -30,6 +32,7 @@ function SortableCard({ task, disabled = false, onOpen }: SortableCardProps) {
     <Card
       ref={setNodeRef}
       task={task}
+      search={search}
       // While dragging, the card left in the list becomes the "it will land here" slot;
       // the card under the pointer is a copy rendered in Board's DragOverlay
       className={isDragging ? 'card-placeholder' : undefined}

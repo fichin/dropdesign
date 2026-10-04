@@ -16,9 +16,11 @@ interface TopBarProps {
   /** The signed-in user's email (unknown while offline) */
   userEmail?: string
   onLogout: () => void
+  /** Focus the board's search box */
+  onSearch: () => void
 }
 
-function TopBar({ projectTitle, members, userEmail, onLogout }: TopBarProps) {
+function TopBar({ projectTitle, members, userEmail, onLogout, onSearch }: TopBarProps) {
   return (
     <header className="top-bar">
       {/* Plain text rather than links: there are no Dashboard or Project pages yet */}
@@ -50,13 +52,12 @@ function TopBar({ projectTitle, members, userEmail, onLogout }: TopBarProps) {
       </nav>
 
       <div className="top-bar-actions">
-        {/* aria-disabled (not disabled) keeps these focusable so the tooltip explains why */}
         <button
           type="button"
           className="icon-button"
-          aria-disabled="true"
-          aria-label="Search (coming soon)"
-          title="Search is coming soon"
+          aria-label="Search tasks"
+          title={`Search tasks (${/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl'}+K)`}
+          onClick={onSearch}
         >
           <SearchIcon />
         </button>
@@ -77,6 +78,7 @@ function TopBar({ projectTitle, members, userEmail, onLogout }: TopBarProps) {
         <button
           type="button"
           className="invite-button"
+          // aria-disabled (not disabled) keeps it focusable so the tooltip explains why
           aria-disabled="true"
           title="Inviting people needs accounts and a shared backend — coming later"
         >

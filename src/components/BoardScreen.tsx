@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { User } from '../api/client'
 import { findColumnId, getTeamMembers } from '../state/boardReducer'
+import { useBoardFilters } from '../state/useBoardFilters'
 import { useBoardSync } from '../state/useBoardSync'
 import { exportBoard } from '../utils/exportBoard'
 import Board from './Board'
+import FilterBar from './FilterBar'
 import ProjectHeader from './ProjectHeader'
 import { BoardPlaceholder, Notice, StatusBanner } from './SyncStatus'
 import TaskModal from './TaskModal'
@@ -23,6 +25,9 @@ function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
   const { board, status, readOnly, loadError, notice, dismissNotice, retry } = sync
   const members = useMemo(() => (board ? getTeamMembers(board) : []), [board])
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
+  // Search and filters: local view state only, never sent to the server
+  const filters = useBoardFilters(board)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   if (!board) {
     return <BoardPlaceholder status={status} error={loadError} onRetry={retry} />
@@ -35,16 +40,31 @@ function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
 
   return (
     <>
-      <TopBar projectTitle={board.title} members={members} userEmail={user?.email} onLogout={onLogout} />
+      <TopBar
+        projectTitle={board.title}
+        members={members}
+        userEmail={user?.email}
+        onLogout={onLogout}
+        onSearch={() => searchRef.current?.focus()}
+      />
       <main>
         <StatusBanner status={status} onRetry={retry} />
         <ProjectHeader title={board.title} onExport={() => exportBoard(board)} />
+        <FilterBar filters={filters} people={board.people} searchRef={searchRef} />
         <Board
           board={board}
           readOnly={readOnly}
-          onAddTask={sync.addTask}
+          onAddTask={(columnId, title) => {
+            sync.addTask(columnId, title)
+            // A new task might not match the search/filters and would vanish as soon as it's
+            // added, so show everything again
+            filters.clear()
+          }}
           onMoveTask={sync.moveTask}
           onOpenTask={setOpenTaskId}
+          isVisible={filters.matches}
+          filtering={filters.isFiltering}
+          search={filters.search}
         />
       </main>
 

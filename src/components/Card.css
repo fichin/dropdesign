@@ -125,6 +125,14 @@
   line-height: 1.45;
 }
 
+/* Search matches in the title */
+.card-title mark {
+  padding: 0 1px;
+  border-radius: 3px;
+  background: #fde68a;
+  color: inherit;
+}
+
 /* Progress */
 .card-progress {
   align-self: stretch;

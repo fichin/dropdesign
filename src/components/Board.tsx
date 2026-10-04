@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/core'
 import { useState } from 'react'
 import { boardReducer, findColumnId } from '../state/boardReducer'
-import type { Board as BoardType } from '../../shared/kanban.ts'
+import type { Board as BoardType, Task } from '../../shared/kanban.ts'
 import Card from './Card'
 import Column from './Column'
 import { kanbanKeyboardCoordinates } from './keyboardCoordinates'
@@ -29,7 +29,17 @@ interface BoardProps {
   onAddTask: (columnId: string, title: string) => void
   onMoveTask: (taskId: string, toColumnId: string, toIndex: number) => void
   onOpenTask: (taskId: string) => void
+  /**
+   * Search/filters: only tasks this returns true for are shown. It only affects rendering;
+   * drag-and-drop still works out positions against each column's full task list.
+   */
+  isVisible?: (task: Task) => boolean
+  filtering?: boolean
+  /** Lowercased search text to highlight in card titles */
+  search?: string
 }
+
+const showAll = () => true
 
 // Enter is left free so it can open a card's details
 const KEYBOARD_CODES = { start: ['Space'], cancel: ['Escape'], end: ['Space'] }
@@ -40,7 +50,16 @@ const SCREEN_READER_INSTRUCTIONS = {
     'use the arrow keys to move it, then press Space to drop it or Escape to cancel.',
 }
 
-function Board({ board, readOnly, onAddTask, onMoveTask, onOpenTask }: BoardProps) {
+function Board({
+  board,
+  readOnly,
+  onAddTask,
+  onMoveTask,
+  onOpenTask,
+  isVisible = showAll,
+  filtering = false,
+  search = '',
+}: BoardProps) {
   // While dragging, cards are rearranged in this preview copy so the lists make room
   // as you go. The real board only receives a single moveTask on drop, and cancelling
   // (Esc, or dropping outside every column) just discards the preview.
@@ -157,12 +176,14 @@ function Board({ board, readOnly, onAddTask, onMoveTask, onOpenTask }: BoardProp
         <div className="board">
           {shown.columnOrder.map((columnId) => {
             const column = shown.columns[columnId]
-            const tasks = column.taskIds.map((taskId) => shown.tasks[taskId])
+            const tasks = column.taskIds.map((taskId) => shown.tasks[taskId]).filter(isVisible)
             return (
               <Column
                 key={column.id}
                 column={column}
                 tasks={tasks}
+                filtering={filtering}
+                search={search}
                 isDropTarget={overColumnId === column.id}
                 readOnly={readOnly}
                 onAddTask={onAddTask}
@@ -177,7 +198,7 @@ function Board({ board, readOnly, onAddTask, onMoveTask, onOpenTask }: BoardProp
         <DragOverlay>
           {activeTask && (
             <div className="drag-overlay" data-status={overlayStatus}>
-              <Card task={activeTask} className="card-overlay" />
+              <Card task={activeTask} search={search} className="card-overlay" />
             </div>
           )}
         </DragOverlay>

@@ -11,6 +11,22 @@
       rel="stylesheet"
     />
     <title>DropDesign</title>
+    <script>
+      // Pick the theme before anything renders, so dark-mode users never see a white flash:
+      // the saved choice (see src/theme.ts), otherwise the system setting. colorScheme also
+      // darkens the browser's own canvas before the stylesheet has loaded.
+      ;(function () {
+        var theme
+        try {
+          theme = localStorage.getItem('theme')
+        } catch (error) {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.dataset.theme = theme
+        document.documentElement.style.colorScheme = theme
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

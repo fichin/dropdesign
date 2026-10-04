@@ -20,17 +20,61 @@
   --rose-50: #fff1f2;
   --rose-500: #f43f5e;
 
+  /* Semantic tokens: components use these (or the palette above, which the dark theme
+     remaps), never raw colors */
+  --bg: #fff;
+  --surface: #fff;
+  --surface-raised: #fff;
   --text: var(--slate-800);
   --text-muted: var(--slate-500);
   --border: var(--slate-200);
+  /* Fills behind white text */
   --primary: var(--indigo-600);
+  --primary-hover: var(--indigo-700);
+  --primary-active: #3730a3;
+  --on-primary: #fff;
+  /* Indigo as text: links, the selected breadcrumb, "Important" */
+  --primary-text: var(--indigo-600);
+  /* Indigo text on an indigo-50 tint */
+  --primary-text-strong: var(--indigo-700);
+  --focus-border: var(--primary);
   --focus-ring: 0 0 0 3px rgb(79 70 229 / 0.25);
+  --focus-outline: rgb(79 70 229 / 0.45);
+  --status-todo: var(--indigo-600);
+  /* Priority pill text, on that priority's -50 tint. Darker than the -500 fills (column
+     dots, progress bars) so the small text passes AA */
+  --priority-high: #be123c;
+  --priority-important: var(--primary-text);
+  --priority-ok: #15803d;
+  --priority-meh: #b45309;
+  --priority-low: var(--slate-600);
+  --danger: #e11d48;
+  --danger-hover: #be123c;
+  /* Overdue dates, error messages, "Delete" */
+  --danger-text: #be123c;
+  --danger-border: #fecdd3;
+  --danger-ring: 0 0 0 3px rgb(225 29 72 / 0.18);
+  --warning-border: #fde68a;
+  --mark: #fde68a;
+  /* rgb() channels, used as rgb(var(--shadow-rgb) / alpha) */
+  --shadow-rgb: 15 23 42;
+  --backdrop: rgb(15 23 42 / 0.45);
+  /* Save-error toast: dark in both themes */
+  --notice-bg: var(--slate-800);
+  --notice-text: #fff;
+  --notice-muted: var(--slate-400);
+  /* Login brand panel */
+  --brand-from: var(--indigo-600);
+  --brand-to: var(--indigo-700);
+  --on-brand: #fff;
+  --motif-card: rgb(255 255 255 / 0.92);
+  --motif-card-lifted: #fff;
 
   font-family: 'Plus Jakarta Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   color: var(--text);
-  background: #fff;
+  background: var(--bg);
   color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -38,9 +82,73 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dark theme. index.html sets data-theme before React mounts, from the saved choice or
+   the system setting.
+   The slate scale is mirrored, so each step keeps its role ("50" is the faintest
+   background, "800" the strongest text). The -50 tints become translucent so they work on
+   any surface, and the -500 colors get lighter so they stay readable as text. */
+:root[data-theme='dark'] {
+  --slate-50: #131c2e;
+  --slate-100: #263247;
+  --slate-200: #334155;
+  --slate-400: #8494aa;
+  --slate-500: #94a3b8;
+  --slate-600: #b4c0d0;
+  --slate-700: #cbd5e1;
+  --slate-800: #e2e8f0;
+  --indigo-50: rgb(99 102 241 / 0.16);
+  --indigo-100: rgb(99 102 241 / 0.3);
+  --amber-50: rgb(245 158 11 / 0.14);
+  --amber-500: #fbbf24;
+  --green-50: rgb(34 197 94 / 0.14);
+  --green-500: #4ade80;
+  --rose-50: rgb(244 63 94 / 0.16);
+  --rose-500: #fb7185;
+
+  --bg: #0b1120;
+  --surface: #1e293b;
+  --surface-raised: #334155;
+  /* A lighter hover: white text stays above 4.5:1 */
+  --primary-hover: #6159f0;
+  --primary-active: var(--indigo-600);
+  --primary-text: #a5b4fc;
+  --primary-text-strong: #c7d2fe;
+  --focus-border: var(--indigo-400);
+  --focus-ring: 0 0 0 3px rgb(129 140 248 / 0.7);
+  --focus-outline: rgb(129 140 248 / 0.8);
+  --status-todo: var(--indigo-400);
+  /* The lightened -500s already read well on the dark tints */
+  --priority-high: var(--rose-500);
+  --priority-ok: var(--green-500);
+  --priority-meh: var(--amber-500);
+  --priority-low: var(--slate-500);
+  --danger-text: #fda4af;
+  --danger-border: rgb(244 63 94 / 0.4);
+  --danger-ring: 0 0 0 3px rgb(244 63 94 / 0.45);
+  --warning-border: rgb(245 158 11 / 0.35);
+  --mark: rgb(250 204 21 / 0.35);
+  --shadow-rgb: 0 0 0;
+  --backdrop: rgb(2 6 23 / 0.7);
+  --notice-bg: #334155;
+  --notice-text: #f8fafc;
+  --notice-muted: #cbd5e1;
+  --brand-from: var(--indigo-700);
+  --brand-to: #312e81;
+  --motif-card: #1e293b;
+  --motif-card-lifted: #273449;
+
+  color-scheme: dark;
+}
+
+/* Set for an instant while the theme changes (see src/state/theme.ts) */
+.theme-switching,
+.theme-switching * {
+  transition: none !important;
+}
+
 /* Status colour: column header dots, progress bars, drop-zone highlight */
 [data-status='todo'] {
-  --accent: var(--indigo-600);
+  --accent: var(--status-todo);
 }
 
 [data-status='in-progress'] {
@@ -81,7 +189,9 @@ svg {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
   color: inherit;
 }
@@ -123,11 +233,11 @@ button {
 .button-primary {
   border: 1px solid var(--primary);
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 
 .button-primary:hover:not(:disabled) {
-  background: var(--indigo-700);
+  background: var(--primary-hover);
 }
 
 .button-primary:disabled {
@@ -137,7 +247,7 @@ button {
 
 .button-secondary {
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   color: var(--slate-600);
 }
 

@@ -8,6 +8,7 @@ import {
   PlusIcon,
   SearchIcon,
 } from './icons'
+import ThemeToggle from './ThemeToggle'
 import './TopBar.css'
 
 interface TopBarProps {
@@ -62,6 +63,8 @@ function TopBar({ projectTitle, members, userEmail, onLogout, onSearch }: TopBar
           <SearchIcon />
         </button>
 
+        <ThemeToggle className="icon-button" />
+
         <ul className="team" aria-label={`Team: ${members.length} people`}>
           {members.map((member) => (
             <li key={member.id} className="team-member">
@@ -82,7 +85,7 @@ function TopBar({ projectTitle, members, userEmail, onLogout, onSearch }: TopBar
           aria-disabled="true"
           title="Inviting people needs accounts and a shared backend — coming later"
         >
-          Invite
+          <span className="invite-label">Invite</span>
           <PlusIcon />
         </button>
 

@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type MouseEvent } from 'react'
 import { ApiError } from '../api/client'
+import ThemeToggle from './ThemeToggle'
 import './AuthPage.css'
 
 type Mode = 'login' | 'register'
@@ -313,6 +314,9 @@ function AuthPage({ mode, notice, onSubmit, onSwitchMode }: AuthPageProps) {
             </a>
           </p>
         </div>
+
+        {/* Top-right corner, but last in the tab order: the form comes first */}
+        <ThemeToggle className="auth-theme-toggle" />
       </main>
     </div>
   )

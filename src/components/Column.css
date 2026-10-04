@@ -48,7 +48,7 @@
 
 .column-count {
   font-weight: 500;
-  color: var(--slate-400);
+  color: var(--text-muted);
 }
 
 .column-add-button {
@@ -64,7 +64,7 @@
 }
 
 .column-add-button:hover:not(:disabled) {
-  background: #fff;
+  background: var(--surface);
 }
 
 .column-add-button:disabled {
@@ -85,7 +85,7 @@
   padding: 12px;
   border: 1px dashed var(--slate-200);
   border-radius: 12px;
-  color: var(--slate-400);
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 500;
 }

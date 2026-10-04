@@ -5,7 +5,7 @@
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .add-task-form input {
@@ -13,6 +13,7 @@
   padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
+  background: var(--surface);
   font-size: 14px;
 }
 
@@ -21,7 +22,7 @@
 }
 
 .add-task-form input:focus-visible {
-  border-color: var(--primary);
+  border-color: var(--focus-border);
 }
 
 .add-task-form-actions {

@@ -5,10 +5,10 @@
   padding: 16px;
   border: 1px solid var(--slate-100);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   box-shadow:
-    0 1px 2px rgb(15 23 42 / 0.04),
-    0 2px 6px rgb(15 23 42 / 0.04);
+    0 1px 2px rgb(var(--shadow-rgb) / 0.04),
+    0 2px 6px rgb(var(--shadow-rgb) / 0.04);
   cursor: grab;
   /* Long-press drags on touch screens instead of selecting text */
   user-select: none;
@@ -41,8 +41,8 @@
   cursor: grabbing;
   transform: rotate(2deg) scale(1.03);
   box-shadow:
-    0 12px 24px -6px rgb(15 23 42 / 0.18),
-    0 4px 8px -2px rgb(15 23 42 / 0.08);
+    0 12px 24px -6px rgb(var(--shadow-rgb) / 0.18),
+    0 4px 8px -2px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .drag-overlay {
@@ -79,7 +79,7 @@
 /* Past due and not finished */
 .card-due-overdue {
   background: var(--rose-50);
-  color: #be123c;
+  color: var(--danger-text);
   font-weight: 600;
 }
 
@@ -95,27 +95,27 @@
 /* One color per priority, most to least urgent — the same in every column */
 .card-priority[data-priority='high-priority'] {
   background: var(--rose-50);
-  color: var(--rose-500);
+  color: var(--priority-high);
 }
 
 .card-priority[data-priority='important'] {
   background: var(--indigo-50);
-  color: var(--indigo-600);
+  color: var(--priority-important);
 }
 
 .card-priority[data-priority='ok'] {
   background: var(--green-50);
-  color: var(--green-500);
+  color: var(--priority-ok);
 }
 
 .card-priority[data-priority='meh'] {
   background: var(--amber-50);
-  color: var(--amber-500);
+  color: var(--priority-meh);
 }
 
 .card-priority[data-priority='not-important'] {
   background: var(--slate-100);
-  color: var(--slate-500);
+  color: var(--priority-low);
 }
 
 .card-title {
@@ -129,7 +129,7 @@
 .card-title mark {
   padding: 0 1px;
   border-radius: 3px;
-  background: #fde68a;
+  background: var(--mark);
   color: inherit;
 }
 
@@ -184,7 +184,7 @@
 .card-assignees > li {
   width: 28px;
   height: 28px;
-  border: 2px solid #fff;
+  border: 2px solid var(--surface);
   border-radius: 50%;
   overflow: hidden;
 }
@@ -203,7 +203,7 @@
   display: grid;
   place-items: center;
   background: var(--indigo-50);
-  color: var(--indigo-600);
+  color: var(--primary-text);
   font-size: 11px;
   font-weight: 600;
 }

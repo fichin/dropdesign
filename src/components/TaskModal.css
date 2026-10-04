@@ -5,13 +5,13 @@
   padding: 0;
   border: 0;
   border-radius: 20px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text);
-  box-shadow: 0 24px 48px -12px rgb(15 23 42 / 0.35);
+  box-shadow: 0 24px 48px -12px rgb(var(--shadow-rgb) / 0.35);
 }
 
 .task-modal::backdrop {
-  background: rgb(15 23 42 / 0.45);
+  background: var(--backdrop);
 }
 
 /* The page behind an open modal shouldn't scroll */
@@ -54,7 +54,7 @@ body:has(.task-modal[open]) {
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface);
   color: var(--slate-600);
   font-size: 22px;
   line-height: 1;
@@ -90,8 +90,8 @@ body:has(.task-modal[open]) {
 }
 
 .task-modal-title:not([readonly]):focus {
-  border-color: var(--primary);
-  background: #fff;
+  border-color: var(--focus-border);
+  background: var(--surface);
 }
 
 .task-modal-grid {
@@ -122,7 +122,7 @@ body:has(.task-modal[open]) {
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   font-size: 14px;
 }
 
@@ -164,6 +164,7 @@ body:has(.task-modal[open]) {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
+  background: var(--surface);
   font: inherit;
   font-size: 14px;
   line-height: 1.5;
@@ -171,7 +172,7 @@ body:has(.task-modal[open]) {
 }
 
 .task-modal-description:focus-visible {
-  border-color: var(--primary);
+  border-color: var(--focus-border);
 }
 
 .task-modal-description[readonly] {
@@ -221,7 +222,7 @@ body:has(.task-modal[open]) {
 
 .task-modal-remove:hover:not(:disabled) {
   background: var(--rose-50);
-  color: #be123c;
+  color: var(--danger-text);
 }
 
 .task-modal-add-person {
@@ -233,7 +234,7 @@ body:has(.task-modal[open]) {
   padding: 12px 14px;
   border: 1px dashed var(--border);
   border-radius: 12px;
-  color: var(--slate-400);
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -252,14 +253,14 @@ body:has(.task-modal[open]) {
 }
 
 .task-modal-date:focus-visible {
-  border-color: var(--primary);
+  border-color: var(--focus-border);
 }
 
 .task-modal-clear-date {
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   color: var(--slate-600);
   font-size: 13px;
   font-weight: 500;
@@ -279,7 +280,7 @@ body:has(.task-modal[open]) {
   padding: 1px 6px;
   border-radius: 6px;
   background: var(--rose-50);
-  color: #be123c;
+  color: var(--danger-text);
   font-size: 11px;
   letter-spacing: 0;
   text-transform: none;
@@ -307,7 +308,7 @@ body:has(.task-modal[open]) {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--primary);
+  color: var(--primary-text);
   font-size: 13px;
   font-weight: 600;
   text-decoration: underline;
@@ -381,7 +382,7 @@ body:has(.task-modal[open]) {
 
 .comment-delete:hover:not(:disabled) {
   background: var(--rose-50);
-  color: #be123c;
+  color: var(--danger-text);
 }
 
 .comment-delete:disabled {
@@ -423,12 +424,12 @@ body:has(.task-modal[open]) {
 }
 
 .comment-hint {
-  color: var(--slate-400);
+  color: var(--text-muted);
   font-size: 12px;
 }
 
 .comment-hint-error {
-  color: #be123c;
+  color: var(--danger-text);
   font-weight: 600;
 }
 
@@ -452,14 +453,14 @@ body:has(.task-modal[open]) {
   padding: 8px 14px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #fff;
-  color: #be123c;
+  background: var(--surface);
+  color: var(--danger-text);
   font-size: 13px;
   font-weight: 600;
 }
 
 .task-modal-delete:hover:not(:disabled) {
-  border-color: #fecdd3;
+  border-color: var(--danger-border);
   background: var(--rose-50);
 }
 
@@ -483,16 +484,16 @@ body:has(.task-modal[open]) {
 
 .button-danger {
   padding: 6px 12px;
-  border: 1px solid #e11d48;
+  border: 1px solid var(--danger);
   border-radius: 8px;
-  background: #e11d48;
-  color: #fff;
+  background: var(--danger);
+  color: var(--on-primary);
   font-size: 13px;
   font-weight: 600;
 }
 
 .button-danger:hover {
-  background: #be123c;
+  background: var(--danger-hover);
 }
 
 @media (max-width: 600px) {

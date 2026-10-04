@@ -4,7 +4,7 @@
   gap: 24px;
   padding: 32px;
   border-bottom: 1px solid var(--border);
-  background: #fff;
+  background: var(--bg);
 }
 
 /* Half-filled planet from the design */
@@ -72,15 +72,15 @@
 }
 
 .view-tab[aria-selected='true'] {
-  background: #fff;
+  background: var(--surface-raised);
   color: var(--text);
   box-shadow:
-    0 1px 2px rgb(15 23 42 / 0.06),
-    0 1px 3px rgb(15 23 42 / 0.08);
+    0 1px 2px rgb(var(--shadow-rgb) / 0.06),
+    0 1px 3px rgb(var(--shadow-rgb) / 0.08);
 }
 
 .view-tab[aria-selected='true'] svg {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .export-button {
@@ -94,13 +94,13 @@
   border: 0;
   border-radius: 999px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 14px;
   font-weight: 600;
 }
 
 .export-button:hover {
-  background: var(--indigo-700);
+  background: var(--primary-hover);
 }
 
 .export-button svg {

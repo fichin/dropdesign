@@ -38,7 +38,7 @@
 }
 
 .breadcrumb li.breadcrumb-current {
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 .breadcrumb-back {
@@ -47,7 +47,7 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--primary);
+  color: var(--primary-text);
 }
 
 /* Actions */
@@ -81,7 +81,7 @@
 .team > li {
   width: 40px;
   height: 40px;
-  border: 2px solid #fff;
+  border: 2px solid var(--surface);
   border-radius: 50%;
   overflow: hidden;
 }
@@ -100,7 +100,7 @@
   display: none;
   place-items: center;
   background: var(--indigo-50);
-  color: var(--primary);
+  color: var(--primary-text);
   font-size: 13px;
   font-weight: 600;
 }
@@ -113,7 +113,7 @@
   padding: 0 14px 0 20px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #fff;
+  background: var(--surface);
   color: var(--slate-600);
   font-size: 14px;
   font-weight: 500;
@@ -151,7 +151,7 @@
   padding: 0 16px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #fff;
+  background: var(--surface);
   color: var(--slate-600);
   font-size: 14px;
   font-weight: 500;
@@ -177,13 +177,15 @@
   }
 
   /* Icon only on phones; the label stays for screen readers */
-  .logout-button {
+  .logout-button,
+  .invite-button {
     justify-content: center;
     width: 40px;
     padding: 0;
   }
 
-  .logout-label {
+  .logout-label,
+  .invite-label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -218,7 +220,8 @@
     gap: 8px;
   }
 
-  .icon-button {
+  /* Line the first icon up with the back label */
+  .icon-button:first-child {
     margin-left: -8px;
   }
 

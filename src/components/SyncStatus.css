@@ -11,7 +11,7 @@
 }
 
 .status-banner-offline {
-  border-bottom-color: #fde68a;
+  border-bottom-color: var(--warning-border);
   background: var(--amber-50);
 }
 
@@ -59,10 +59,10 @@
   max-width: 560px;
   padding: 12px 12px 12px 16px;
   border-radius: 12px;
-  background: var(--slate-800);
-  color: #fff;
+  background: var(--notice-bg);
+  color: var(--notice-text);
   font-size: 14px;
-  box-shadow: 0 10px 25px -5px rgb(15 23 42 / 0.3);
+  box-shadow: 0 10px 25px -5px rgb(var(--shadow-rgb) / 0.3);
   pointer-events: auto;
 }
 
@@ -74,14 +74,15 @@
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: var(--slate-400);
+  color: var(--notice-muted);
   font-size: 20px;
   line-height: 1;
 }
 
+/* The notice is dark in both themes, so a light overlay works for either */
 .notice-dismiss:hover {
   background: rgb(255 255 255 / 0.1);
-  color: #fff;
+  color: var(--notice-text);
 }
 
 /* No board to show yet */

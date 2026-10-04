@@ -30,7 +30,7 @@
   padding: 0 64px 0 36px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   font-size: 14px;
 }
 
@@ -40,7 +40,7 @@
 
 .filter-search-input:focus,
 .filter-search-input:focus-visible {
-  border-color: var(--primary);
+  border-color: var(--focus-border);
   outline: none;
   box-shadow: var(--focus-ring);
 }
@@ -82,7 +82,7 @@
   padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #fff;
+  background: var(--surface);
   color: var(--slate-600);
   font-size: 13px;
   font-weight: 500;
@@ -97,7 +97,7 @@
 .filter-toggle[aria-pressed='true'] {
   border-color: var(--indigo-100);
   background: var(--indigo-50);
-  color: var(--indigo-700);
+  color: var(--primary-text-strong);
 }
 
 .filter-toggle svg {
@@ -110,7 +110,7 @@
   padding: 0 5px;
   border-radius: 999px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 11px;
   font-weight: 700;
   line-height: 18px;
@@ -136,8 +136,8 @@
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 12px 28px -8px rgb(15 23 42 / 0.25);
+  background: var(--surface);
+  box-shadow: 0 12px 28px -8px rgb(var(--shadow-rgb) / 0.25);
 }
 
 .filter-option {
@@ -179,27 +179,27 @@
 
 .filter-priority[data-priority='high-priority'] {
   background: var(--rose-50);
-  color: var(--rose-500);
+  color: var(--priority-high);
 }
 
 .filter-priority[data-priority='important'] {
   background: var(--indigo-50);
-  color: var(--indigo-600);
+  color: var(--priority-important);
 }
 
 .filter-priority[data-priority='ok'] {
   background: var(--green-50);
-  color: var(--green-500);
+  color: var(--priority-ok);
 }
 
 .filter-priority[data-priority='meh'] {
   background: var(--amber-50);
-  color: var(--amber-500);
+  color: var(--priority-meh);
 }
 
 .filter-priority[data-priority='not-important'] {
   background: var(--slate-100);
-  color: var(--slate-500);
+  color: var(--priority-low);
 }
 
 .filter-badge {
@@ -207,7 +207,7 @@
   padding: 0 7px;
   border-radius: 999px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 12px;
   font-weight: 700;
   line-height: 22px;
@@ -217,7 +217,7 @@
 .filter-clear {
   border-color: transparent;
   background: none;
-  color: var(--primary);
+  color: var(--primary-text);
   font-weight: 600;
 }
 

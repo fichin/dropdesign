@@ -1,5 +1,7 @@
 # DropDesign
 
+[![CI](https://github.com/fichin/dropdesign/actions/workflows/ci.yml/badge.svg)](https://github.com/fichin/dropdesign/actions/workflows/ci.yml)
+
 A full-stack Kanban board for small teams: drag tasks between columns, track progress and
 due dates, discuss tasks in comments, and find anything with search and filters. React +
 TypeScript on the front, Express + PostgreSQL behind it, with accounts, light and dark
@@ -54,6 +56,9 @@ You need **Node 24+** and a **PostgreSQL** database. A free [Neon](https://neon.
 project works, as does a local Postgres.
 
 ```bash
+git clone https://github.com/fichin/dropdesign.git
+cd dropdesign
+
 # 1. Backend: configure, create the tables, load the sample board, start the API (port 3001)
 cd backend
 npm install
@@ -106,6 +111,10 @@ npm test                 # frontend: 102 tests (Vitest)
 npm run coverage         # with a coverage report
 cd backend && npm test   # backend: 69 tests against TEST_DATABASE_URL
 ```
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push and pull request
+to `main`: lint, the frontend tests and the production build, plus the backend type-check and
+tests against a Postgres service container.
 
 The frontend tests focus on the logic that's easiest to break without noticing: the save
 queue and rollback, theme persistence (including the no-flash script in `index.html`),

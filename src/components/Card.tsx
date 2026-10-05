@@ -1,8 +1,8 @@
 import type { ComponentPropsWithRef } from 'react'
 import { PRIORITY_LABELS, type Task } from '../../shared/kanban.ts'
-import { formatDueDate, formatDueDateLong, isOverdue } from '../utils/dates'
+import DueDate from './DueDate'
 import Highlight from './Highlight'
-import { CalendarIcon, CheckCircleIcon, CommentIcon } from './icons'
+import { CheckCircleIcon, CommentIcon } from './icons'
 import './Card.css'
 
 /** The design shows four faces, then a "+N" chip */
@@ -14,22 +14,6 @@ const compactNumber = new Intl.NumberFormat('en', {
 })
 
 /** Extra article props (ref, style, drag attributes) let SortableCard make it draggable */
-/** Calendar icon + "Oct 15"; rose when overdue (past, and the task isn't finished) */
-function DueDate({ date, done }: { date: string; done: boolean }) {
-  const overdue = !done && isOverdue(date)
-  return (
-    <span
-      className={overdue ? 'card-due card-due-overdue' : 'card-due'}
-      title={`Due ${formatDueDateLong(date)}${overdue ? ' (overdue)' : ''}`}
-    >
-      <CalendarIcon />
-      <span className="visually-hidden">Due </span>
-      <time dateTime={date}>{formatDueDate(date)}</time>
-      {overdue && <span className="visually-hidden">, overdue</span>}
-    </span>
-  )
-}
-
 interface CardProps extends ComponentPropsWithRef<'article'> {
   task: Task
   /** Lowercased search text to highlight in the title */

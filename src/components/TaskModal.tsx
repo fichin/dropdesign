@@ -13,11 +13,15 @@ const OFFLINE_HINT = "Can't edit while offline"
 interface TaskModalProps {
   task: Task
   column: Column
+  /** Every column, in board order, for the Status control */
+  columns: Column[]
   /** Everyone who can be assigned */
   people: Assignee[]
   /** Showing a cached copy: details are visible but can't be changed */
   readOnly: boolean
   onUpdate: (changes: TaskChanges) => void
+  /** Status changed: move the task to the top of that column */
+  onMove: (columnId: string) => void
   onDelete: () => void
   onClose: () => void
   /** The signed-in user, for "your" comments (unknown while offline) */
@@ -35,9 +39,11 @@ interface TaskModalProps {
 function TaskModal({
   task,
   column,
+  columns,
   people,
   readOnly,
   onUpdate,
+  onMove,
   onDelete,
   onClose,
   currentUser,
@@ -154,6 +160,25 @@ function TaskModal({
         />
 
         <div className="task-modal-grid">
+          <section className="task-modal-section">
+            <label className="task-modal-label" htmlFor="task-status">
+              Status
+            </label>
+            <select
+              id="task-status"
+              className="task-modal-select"
+              value={column.id}
+              onChange={(event) => onMove(event.target.value)}
+              {...editDisabled}
+            >
+              {columns.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.title}
+                </option>
+              ))}
+            </select>
+          </section>
+
           <section className="task-modal-section">
             <label className="task-modal-label" htmlFor="task-priority">
               Priority

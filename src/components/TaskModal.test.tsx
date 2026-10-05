@@ -38,6 +38,7 @@ function setup({ readOnly = false, comments = makeCommentSync(), task = makeTask
   const user = userEvent.setup()
   const props = {
     onUpdate: vi.fn(),
+    onMove: vi.fn(),
     onDelete: vi.fn(),
     onClose: vi.fn(),
   }
@@ -45,6 +46,7 @@ function setup({ readOnly = false, comments = makeCommentSync(), task = makeTask
     <TaskModal
       task={task}
       column={board.columns.doing}
+      columns={board.columnOrder.map((id) => board.columns[id])}
       people={board.people}
       readOnly={readOnly}
       currentUser={currentUser}
@@ -60,7 +62,7 @@ describe('TaskModal: open and close', () => {
   it('opens as a modal dialog with focus on Close', () => {
     const { dialog } = setup()
     expect(dialog).toHaveAttribute('open')
-    expect(within(dialog).getByText('In Progress')).toBeInTheDocument()
+    expect(within(dialog).getByText('In Progress', { selector: '.task-modal-column' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
   })
 
@@ -80,7 +82,7 @@ describe('TaskModal: open and close', () => {
 
   it('closes on a backdrop click, but not on clicks inside', async () => {
     const { user, dialog, onClose } = setup()
-    await user.click(screen.getByText('In Progress'))
+    await user.click(screen.getByText('In Progress', { selector: '.task-modal-column' }))
     expect(onClose).not.toHaveBeenCalled()
     await user.click(dialog) // the dialog element itself only receives backdrop clicks
     expect(onClose).toHaveBeenCalledOnce()
@@ -107,6 +109,15 @@ describe('TaskModal: open and close', () => {
 })
 
 describe('TaskModal: editing', () => {
+  it('changes the status (moves the task to another column)', async () => {
+    const { user, onMove } = setup()
+    const status = screen.getByRole('combobox', { name: 'Status' })
+    expect(status).toHaveValue('doing')
+    expect(screen.getAllByRole('option', { name: /To Do|In Progress|Completed/ }).map((o) => o.textContent)).toEqual(['To Do', 'In Progress', 'Completed'])
+    await user.selectOptions(status, 'Completed')
+    expect(onMove).toHaveBeenCalledWith('done')
+  })
+
   it('changes the priority', async () => {
     const { user, onUpdate } = setup()
     await user.selectOptions(screen.getByRole('combobox', { name: 'Priority' }), 'Meh')
@@ -138,11 +149,13 @@ describe('TaskModal: editing', () => {
       <TaskModal
         task={makeTask('a', { title: 'Design landing page' })}
         column={board.columns.doing}
+        columns={board.columnOrder.map((id) => board.columns[id])}
         people={board.people}
         readOnly={false}
         currentUser={{ ...currentUser, demo: true }}
         comments={makeCommentSync()}
         onUpdate={vi.fn()}
+        onMove={vi.fn()}
         onDelete={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -158,6 +171,7 @@ describe('TaskModal: editing', () => {
     const { user, onUpdate } = setup({ readOnly: true })
     expect(screen.getByRole('status')).toHaveTextContent("You're offline")
     expect(screen.getByRole('combobox', { name: 'Priority' })).toBeDisabled()
+    expect(screen.getByRole('combobox', { name: 'Status' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Delete task' })).toBeDisabled()
     expect(screen.getByRole('textbox', { name: 'Write a comment' })).toBeDisabled()
     await user.type(screen.getByRole('textbox', { name: 'Title' }), 'x')

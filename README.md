@@ -24,7 +24,8 @@ can change anything except delete tasks.
 ## Features
 
 - **Kanban board**: three columns, drag-and-drop with mouse, touch (press and hold) or keyboard (Space, arrows, Space)
-- **Task details**: title, description, priority, assignees, due dates with overdue highlighting, delete with confirmation
+- **Four views** of the same board, remembered across visits: **Grid** (the kanban), **List** (a table sortable by status and due date), **Column** (columns stacked full width, good on phones) and **Row** (each column as a horizontal lane). Search and filters apply in every view; drag-and-drop works in Grid, Column and Row
+- **Task details**: title, description, status, priority, assignees, due dates with overdue highlighting, delete with confirmation
 - **Comments** on every task, shown instantly while they save
 - **Search and filters**: live search with highlighted matches, priority/assignee/overdue filters, <kbd>Ctrl</kbd>+<kbd>K</kbd> or <kbd>/</kbd> to search
 - **Accounts**: register and log in, or **Try Demo** with one click; sessions in an httpOnly cookie
@@ -133,5 +134,5 @@ docs/           Demo GIF and screenshots
 ## Not built yet
 
 - **Live updates**: other people's changes appear when you reload (no websockets yet)
-- **List, Column and Row views**, and **Invite**: shown in the header, not wired up
+- **Invite**: shown in the top bar, not wired up
 - **Password reset**

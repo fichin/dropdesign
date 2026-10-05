@@ -1,5 +1,5 @@
 import { useDroppable } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { horizontalListSortingStrategy, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useState } from 'react'
 import type { Column as ColumnType, Task } from '../../shared/kanban.ts'
 import AddTaskForm from './AddTaskForm'
@@ -21,9 +21,21 @@ interface ColumnProps {
   readOnly: boolean
   onAddTask: (columnId: string, title: string) => void
   onOpenTask: (taskId: string) => void
+  /** Cards top to bottom (Grid, Column views) or left to right (Row view lanes) */
+  orientation?: 'vertical' | 'horizontal'
 }
 
-function Column({ column, tasks, filtering, search, isDropTarget, readOnly, onAddTask, onOpenTask }: ColumnProps) {
+function Column({
+  column,
+  tasks,
+  filtering,
+  search,
+  isDropTarget,
+  readOnly,
+  onAddTask,
+  onOpenTask,
+  orientation = 'vertical',
+}: ColumnProps) {
   const [isAdding, setIsAdding] = useState(false)
   // The whole column is a drop zone, so cards can be dropped into an empty column too.
   // type/taskIds are read by keyboard navigation (see keyboardCoordinates.ts)
@@ -69,7 +81,11 @@ function Column({ column, tasks, filtering, search, isDropTarget, readOnly, onAd
         )}
         {/* Only the shown cards are sortable: dnd-kit's items must match what's rendered.
             Where a dropped card lands is worked out against the full column in Board */}
-        <SortableContext id={column.id} items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          id={column.id}
+          items={tasks.map((task) => task.id)}
+          strategy={orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy}
+        >
           {tasks.map((task) => (
             <SortableCard key={task.id} task={task} disabled={readOnly} onOpen={onOpenTask} search={search} />
           ))}

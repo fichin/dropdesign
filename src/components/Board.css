@@ -12,9 +12,49 @@
   overflow-x: auto;
 }
 
+/* Column view: the columns stacked, full width, at every screen size */
+.board-column .board,
+.board-row .board {
+  grid-auto-flow: row;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-columns: auto;
+}
+
+.board-column .board {
+  gap: 32px;
+}
+
+/* Row view: each column is a horizontal lane; its cards sit side by side and the lane
+   scrolls sideways (the page itself doesn't) */
+.board-row .column-tasks {
+  /* Positioned for the same reason as the List view's table: screen-reader-only text in
+     the cards must scroll with the lane, not widen the page */
+  position: relative;
+  flex-direction: row;
+  align-items: stretch;
+  overflow-x: auto;
+  /* Room for the focus ring and the drag lift, which a scroll container would clip */
+  padding: 4px 4px 8px;
+  margin: -4px -4px -8px;
+}
+
+.board-row .column-tasks > .card,
+.board-row .column-tasks > .add-task-form {
+  flex: 0 0 280px;
+}
+
+.board-row .column-empty {
+  flex: 1 1 280px;
+}
+
 @media (max-width: 767px) {
   .board-page {
     padding: 16px;
+  }
+
+  .board-row .column-tasks > .card,
+  .board-row .column-tasks > .add-task-form {
+    flex-basis: 250px;
   }
 
   /* Mobile design stacks the columns */

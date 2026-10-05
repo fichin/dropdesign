@@ -18,8 +18,7 @@ import { boardReducer, findColumnId } from '../state/boardReducer'
 import type { Board as BoardType, Task } from '../../shared/kanban.ts'
 import Card from './Card'
 import Column from './Column'
-import { kanbanKeyboardCoordinates } from './keyboardCoordinates'
-import { BOARD_VIEW_ID } from './ProjectHeader'
+import { kanbanKeyboardCoordinates, laneKeyboardCoordinates } from './keyboardCoordinates'
 import './Board.css'
 
 interface BoardProps {
@@ -37,7 +36,14 @@ interface BoardProps {
   filtering?: boolean
   /** Lowercased search text to highlight in card titles */
   search?: string
+  /**
+   * grid: columns side by side (stacked on phones); column: always stacked, full width;
+   * row: each column is a horizontal lane with its cards in a row
+   */
+  layout?: BoardLayout
 }
+
+export type BoardLayout = 'grid' | 'column' | 'row'
 
 const showAll = () => true
 
@@ -59,7 +65,9 @@ function Board({
   isVisible = showAll,
   filtering = false,
   search = '',
+  layout = 'grid',
 }: BoardProps) {
+  const cardsRun = layout === 'row' ? 'horizontal' : 'vertical'
   // While dragging, cards are rearranged in this preview copy so the lists make room
   // as you go. The real board only receives a single moveTask on drop, and cancelling
   // (Esc, or dropping outside every column) just discards the preview.
@@ -74,7 +82,10 @@ function Board({
     // Press and hold on touch screens, so swiping still scrolls the page
     useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
     // Space to pick up, arrow keys to move, Space to drop, Esc to cancel
-    useSensor(KeyboardSensor, { coordinateGetter: kanbanKeyboardCoordinates, keyboardCodes: KEYBOARD_CODES }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: cardsRun === 'horizontal' ? laneKeyboardCoordinates : kanbanKeyboardCoordinates,
+      keyboardCodes: KEYBOARD_CODES,
+    }),
   )
 
   function resetDrag() {
@@ -110,10 +121,14 @@ function Board({
       const toTaskIds = current.columns[toColumnId].taskIds
       let toIndex = toTaskIds.length
       if (overId !== toColumnId) {
-        // Over a card: go above or below it depending on which half the dragged card is over
-        const draggedTop = active.rect.current.translated?.top ?? 0
-        const isBelow = draggedTop > over.rect.top + over.rect.height / 2
-        toIndex = toTaskIds.indexOf(overId) + (isBelow ? 1 : 0)
+        // Over a card: go before or after it depending on which half the dragged card is over
+        // (top/bottom half in columns, left/right half in Row view lanes)
+        const dragged = active.rect.current.translated
+        const isAfter =
+          cardsRun === 'horizontal'
+            ? (dragged?.left ?? 0) > over.rect.left + over.rect.width / 2
+            : (dragged?.top ?? 0) > over.rect.top + over.rect.height / 2
+        toIndex = toTaskIds.indexOf(overId) + (isAfter ? 1 : 0)
       }
       return boardReducer(current, { type: 'moveTask', taskId, toColumnId, toIndex })
     })
@@ -163,7 +178,7 @@ function Board({
   const overlayStatus = overColumnId ? shown.columns[overColumnId].status : undefined
 
   return (
-    <div className="board-page" id={BOARD_VIEW_ID} role="tabpanel" aria-labelledby="view-tab-grid">
+    <div className={`board-page board-${layout}`}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -188,6 +203,7 @@ function Board({
                 readOnly={readOnly}
                 onAddTask={onAddTask}
                 onOpenTask={onOpenTask}
+                orientation={cardsRun}
               />
             )
           })}

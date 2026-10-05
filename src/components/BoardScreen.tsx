@@ -1,13 +1,15 @@
 import { useMemo, useRef, useState } from 'react'
 import type { User } from '../api/client'
 import { findColumnId, getTeamMembers } from '../state/boardReducer'
+import { useBoardView, viewTabId } from '../state/boardView'
 import { useBoardFilters } from '../state/useBoardFilters'
 import { useBoardSync } from '../state/useBoardSync'
 import { exportBoard } from '../utils/exportBoard'
 import Board from './Board'
 import FilterBar from './FilterBar'
-import ProjectHeader from './ProjectHeader'
+import ProjectHeader, { BOARD_VIEW_ID } from './ProjectHeader'
 import { BoardPlaceholder, Notice, StatusBanner } from './SyncStatus'
+import TaskList from './TaskList'
 import TaskModal from './TaskModal'
 import TopBar from './TopBar'
 
@@ -28,6 +30,8 @@ function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
   // Search and filters: local view state only, never sent to the server
   const filters = useBoardFilters(board)
   const searchRef = useRef<HTMLInputElement>(null)
+  // Grid, List, Column or Row: all show the same board, search and filters
+  const [view, setView] = useBoardView()
 
   if (!board) {
     return <BoardPlaceholder status={status} error={loadError} onRetry={retry} />
@@ -55,23 +59,32 @@ function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
             tasks can't be deleted.
           </p>
         )}
-        <ProjectHeader title={board.title} onExport={() => exportBoard(board)} />
+        <ProjectHeader title={board.title} view={view} onViewChange={setView} onExport={() => exportBoard(board)} />
         <FilterBar filters={filters} people={board.people} searchRef={searchRef} />
-        <Board
-          board={board}
-          readOnly={readOnly}
-          onAddTask={(columnId, title) => {
-            sync.addTask(columnId, title)
-            // A new task might not match the search/filters and would vanish as soon as it's
-            // added, so show everything again
-            filters.clear()
-          }}
-          onMoveTask={sync.moveTask}
-          onOpenTask={setOpenTaskId}
-          isVisible={filters.matches}
-          filtering={filters.isFiltering}
-          search={filters.search}
-        />
+        <div id={BOARD_VIEW_ID} role="tabpanel" aria-labelledby={viewTabId(view)}>
+          {view === 'list' ? (
+            <div className="board-page">
+              <TaskList board={board} isVisible={filters.matches} search={filters.search} onOpenTask={setOpenTaskId} />
+            </div>
+          ) : (
+            <Board
+              board={board}
+              layout={view}
+              readOnly={readOnly}
+              onAddTask={(columnId, title) => {
+                sync.addTask(columnId, title)
+                // A new task might not match the search/filters and would vanish as soon as it's
+                // added, so show everything again
+                filters.clear()
+              }}
+              onMoveTask={sync.moveTask}
+              onOpenTask={setOpenTaskId}
+              isVisible={filters.matches}
+              filtering={filters.isFiltering}
+              search={filters.search}
+            />
+          )}
+        </div>
       </main>
 
       {openTask && openColumnId ? (
@@ -79,9 +92,12 @@ function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
           key={openTask.id}
           task={openTask}
           column={board.columns[openColumnId]}
+          columns={board.columnOrder.map((columnId) => board.columns[columnId])}
           people={board.people}
           readOnly={readOnly}
           onUpdate={(changes) => sync.updateTask(openTask.id, changes)}
+          // To the top of the new column (the same rules as dropping a card there)
+          onMove={(columnId) => sync.moveTask(openTask.id, columnId, 0)}
           onDelete={() => sync.deleteTask(openTask.id)}
           onClose={() => setOpenTaskId(null)}
           currentUser={user}

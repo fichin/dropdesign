@@ -377,6 +377,68 @@
   animation: auth-spin 0.8s linear infinite;
 }
 
+/* "Try Demo": an outlined secondary action under the form */
+.auth-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-demo-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.auth-demo-button:hover:not(:disabled) {
+  border-color: var(--slate-400);
+  background: var(--slate-50);
+}
+
+.auth-demo-button:disabled {
+  cursor: progress;
+  opacity: 0.8;
+}
+
+.auth-demo-button .auth-spinner {
+  border-color: var(--border);
+  border-top-color: var(--primary-text);
+}
+
+.auth-demo-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
 .auth-switch {
   margin-top: 28px;
   color: var(--text-muted);
@@ -406,7 +468,8 @@
 /* No movement for people who ask for less of it: keep the color changes, drop the lift */
 @media (prefers-reduced-motion: reduce) {
   .auth-field input,
-  .auth-submit {
+  .auth-submit,
+  .auth-demo-button {
     transition: none;
   }
 

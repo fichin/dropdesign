@@ -11,6 +11,7 @@
     "start": "node --env-file-if-exists=.env src/server.ts",
     "migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
     "seed": "node --env-file-if-exists=.env src/db/seed.ts",
+    "demo:reset": "node --env-file-if-exists=.env src/demo/reset.ts",
     "test": "node --env-file-if-exists=.env --test --test-concurrency=1 test/*.test.ts",
     "typecheck": "tsc"
   },

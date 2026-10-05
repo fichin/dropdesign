@@ -49,6 +49,12 @@ function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
       />
       <main>
         <StatusBanner status={status} onRetry={retry} />
+        {user?.demo && (
+          <p className="status-banner" role="note">
+            You're exploring the demo board. Look around and change anything; it resets every day, and
+            tasks can't be deleted.
+          </p>
+        )}
         <ProjectHeader title={board.title} onExport={() => exportBoard(board)} />
         <FilterBar filters={filters} people={board.people} searchRef={searchRef} />
         <Board

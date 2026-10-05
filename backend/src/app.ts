@@ -7,6 +7,7 @@ import { authRoutes } from './auth/routes.ts'
 import { createSessions, type SessionOptions } from './auth/session.ts'
 import { boardRoutes } from './boards/routes.ts'
 import { commentRoutes } from './comments/routes.ts'
+import { demoRoutes } from './demo/routes.ts'
 import { HttpError } from './errors.ts'
 
 interface AppOptions {
@@ -17,9 +18,11 @@ interface AppOptions {
     /** bcrypt cost factor; each +1 doubles the time to hash (tests use a low value) */
     bcryptRounds?: number
   }
+  /** Enables GET /api/demo/reset for Vercel's daily cron (CRON_SECRET) */
+  cronSecret?: string
 }
 
-export function createApp({ pool, corsOrigin, auth }: AppOptions) {
+export function createApp({ pool, corsOrigin, auth, cronSecret }: AppOptions) {
   const app = express()
   const sessions = createSessions(auth)
 
@@ -40,6 +43,8 @@ export function createApp({ pool, corsOrigin, auth }: AppOptions) {
   })
 
   app.use('/api/auth', authRoutes(pool, sessions, { bcryptRounds: auth.bcryptRounds ?? 12 }))
+  // Its own secret instead of a session (called by the cron, not a browser)
+  app.use('/api', demoRoutes(pool, { cronSecret, bcryptRounds: auth.bcryptRounds ?? 12 }))
 
   // Signed-in users only: requests without a valid session get 401 before any database work
   app.use(['/api/boards', '/api/tasks', '/api/comments'], sessions.requireAuth)

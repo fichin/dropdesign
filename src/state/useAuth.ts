@@ -18,10 +18,13 @@ export function useAuth() {
   const [auth, setAuth] = useState<AuthState>({ status: 'checking' })
 
   useEffect(() => {
+    // Only settles the initial check: if the visitor has logged in (or used Try Demo) while
+    // it was in flight, its answer is from before that session and must not replace it
+    const settle = (next: AuthState) => setAuth((current) => (current.status === 'checking' ? next : current))
     api.me().then(
-      (user) => setAuth({ status: 'signedIn', user }),
+      (user) => settle({ status: 'signedIn', user }),
       (error) =>
-        setAuth(error instanceof ApiError && error.status === 401 ? { status: 'signedOut' } : { status: 'unknown' }),
+        settle(error instanceof ApiError && error.status === 401 ? { status: 'signedOut' } : { status: 'unknown' }),
     )
   }, [])
 
@@ -32,6 +35,11 @@ export function useAuth() {
 
   const register = useCallback(async (email: string, password: string) => {
     setAuth({ status: 'signedIn', user: await api.register({ email, password }) })
+  }, [])
+
+  /** "Try Demo": no credentials needed; throws ApiError for the page to show */
+  const tryDemo = useCallback(async () => {
+    setAuth({ status: 'signedIn', user: await api.loginDemo() })
   }, [])
 
   const logout = useCallback(async () => {
@@ -54,5 +62,5 @@ export function useAuth() {
     )
   }, [])
 
-  return { auth, login, register, logout, sessionEnded }
+  return { auth, login, register, tryDemo, logout, sessionEnded }
 }

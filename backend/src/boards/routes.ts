@@ -2,6 +2,8 @@ import { Router } from 'express'
 import type pg from 'pg'
 import { z } from 'zod'
 import { PRIORITIES } from '../../../shared/kanban.ts'
+import { isDemoEmail } from '../demo/account.ts'
+import { forbidden } from '../errors.ts'
 import { addTask, deleteTask, getBoard, listBoards, moveTask, updateTask } from './repository.ts'
 
 const boardParams = z.object({ boardId: z.uuid() })
@@ -65,6 +67,11 @@ export function boardRoutes(pool: pg.Pool) {
 
   router.delete('/tasks/:taskId', async (req, res) => {
     const { taskId } = taskParams.parse(req.params)
+    // The shared demo account can change things but not delete them
+    const { rows: [user] } = await pool.query<{ email: string }>('SELECT email FROM users WHERE id = $1', [
+      res.locals.userId,
+    ])
+    if (user && isDemoEmail(user.email)) throw forbidden("The demo account can't delete tasks")
     res.json(await deleteTask(pool, taskId))
   })
 

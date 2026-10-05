@@ -15,6 +15,8 @@ const serverSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(3001),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  // Optional: lets Vercel's daily cron reset the demo board (GET /api/demo/reset)
+  CRON_SECRET: z.string().min(16, 'CRON_SECRET should be at least 16 characters').optional(),
 })
 
 function load<T extends z.ZodType>(schema: T): z.infer<T> {

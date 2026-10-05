@@ -7,7 +7,7 @@ import { useAuth } from './state/useAuth'
 const AUTH_PATHS = { '/login': 'login', '/register': 'register' } as const
 
 function App() {
-  const { auth, login, register, logout, sessionEnded } = useAuth()
+  const { auth, login, register, tryDemo, logout, sessionEnded } = useAuth()
   const { path, navigate } = usePath()
   const authMode = AUTH_PATHS[path as keyof typeof AUTH_PATHS]
 
@@ -27,6 +27,7 @@ function App() {
         notice={auth.status === 'signedOut' ? auth.reason : undefined}
         onSubmit={authMode === 'login' ? login : register}
         onSwitchMode={(mode) => navigate(`/${mode}`)}
+        onTryDemo={tryDemo}
       />
     )
   }

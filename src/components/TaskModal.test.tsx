@@ -133,6 +133,27 @@ describe('TaskModal: editing', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
+  it("doesn't offer deleting to the demo account", () => {
+    render(
+      <TaskModal
+        task={makeTask('a', { title: 'Design landing page' })}
+        column={board.columns.doing}
+        people={board.people}
+        readOnly={false}
+        currentUser={{ ...currentUser, demo: true }}
+        comments={makeCommentSync()}
+        onUpdate={vi.fn()}
+        onDelete={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    const remove = screen.getByRole('button', { name: 'Delete task' })
+    expect(remove).toBeDisabled()
+    expect(remove).toHaveAttribute('title', "The demo account can't delete tasks")
+    // Everything else stays editable
+    expect(screen.getByRole('combobox', { name: 'Priority' })).toBeEnabled()
+  })
+
   it('is view-only while offline', async () => {
     const { user, onUpdate } = setup({ readOnly: true })
     expect(screen.getByRole('status')).toHaveTextContent("You're offline")

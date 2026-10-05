@@ -18,6 +18,8 @@ interface AuthPageProps {
   notice?: string
   onSubmit: (email: string, password: string) => Promise<void>
   onSwitchMode: (mode: Mode) => void
+  /** "Try Demo": signs in as the shared demo account */
+  onTryDemo?: () => Promise<void>
 }
 
 const PRODUCT_NAME = 'DropDesign'
@@ -141,13 +143,14 @@ function BoardMotif() {
   )
 }
 
-function AuthPage({ mode, notice, onSubmit, onSwitchMode }: AuthPageProps) {
+function AuthPage({ mode, notice, onSubmit, onSwitchMode, onTryDemo }: AuthPageProps) {
   const copy = COPY[mode]
   const [values, setValues] = useState<Values>({ email: '', password: '', confirmPassword: '' })
   const { email, password, confirmPassword } = values
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<Field, string>>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [startingDemo, setStartingDemo] = useState(false)
   // Errors appear after the first submit, then update as you type
   const [attempted, setAttempted] = useState(false)
 
@@ -184,6 +187,25 @@ function AuthPage({ mode, notice, onSubmit, onSwitchMode }: AuthPageProps) {
         setFieldErrors(fromServer)
       } else setFormError(error.message)
       setSubmitting(false)
+    }
+  }
+
+  async function tryDemo() {
+    if (!onTryDemo || submitting || startingDemo) return
+    setFormError(null)
+    setStartingDemo(true)
+    try {
+      await onTryDemo()
+      // On success the app navigates to the board, which unmounts this page
+    } catch (error) {
+      if (error instanceof ApiError && error.unreachable) {
+        setFormError("Can't reach the server. Check your connection and try again.")
+      } else if (error instanceof ApiError && error.status === 404) {
+        setFormError("The demo isn't available on this server.")
+      } else {
+        setFormError('Something went wrong. Please try again.')
+      }
+      setStartingDemo(false)
     }
   }
 
@@ -301,11 +323,32 @@ function AuthPage({ mode, notice, onSubmit, onSwitchMode }: AuthPageProps) {
               </div>
             )}
 
-            <button type="submit" className="auth-submit" disabled={submitting}>
+            <button type="submit" className="auth-submit" disabled={submitting || startingDemo}>
               {submitting && <span className="auth-spinner" aria-hidden="true" />}
               {submitting ? copy.submitting : copy.submit}
             </button>
           </form>
+
+          {onTryDemo && (
+            <div className="auth-demo">
+              <p className="auth-divider">
+                <span>or</span>
+              </p>
+              <button
+                type="button"
+                className="auth-demo-button"
+                onClick={tryDemo}
+                disabled={submitting || startingDemo}
+                aria-describedby="demo-hint"
+              >
+                {startingDemo && <span className="auth-spinner" aria-hidden="true" />}
+                {startingDemo ? 'Opening the demo…' : 'Try Demo'}
+              </button>
+              <p id="demo-hint" className="auth-demo-hint">
+                Explore a sample board, no account needed
+              </p>
+            </div>
+          )}
 
           <p className="auth-switch">
             {copy.switchText}{' '}

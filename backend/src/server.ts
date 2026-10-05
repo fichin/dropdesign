@@ -8,6 +8,7 @@ const app = createApp({
   pool,
   corsOrigin: config.CORS_ORIGIN,
   auth: { jwtSecret: config.JWT_SECRET, secureCookies: config.NODE_ENV === 'production' },
+  cronSecret: config.CRON_SECRET,
 })
 
 const server = app.listen(config.PORT, () => {

@@ -58,6 +58,8 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 export interface User {
   id: string
   email: string
+  /** The shared demo account (can't delete tasks; its board resets daily) */
+  demo?: boolean
 }
 
 export const api = {
@@ -65,6 +67,8 @@ export const api = {
   login: (credentials: { email: string; password: string }) => request<User>('POST', '/auth/login', credentials),
   register: (credentials: { email: string; password: string }) =>
     request<User>('POST', '/auth/register', credentials),
+  /** "Try Demo": signs in as the demo account */
+  loginDemo: () => request<User>('POST', '/auth/demo'),
   logout: () => request<null>('POST', '/auth/logout'),
 
   listBoards: () => request<{ id: string; title: string }[]>('GET', '/boards'),

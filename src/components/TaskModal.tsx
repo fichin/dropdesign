@@ -317,7 +317,14 @@ function TaskModal({
               </div>
             </div>
           ) : (
-            <button type="button" className="task-modal-delete" onClick={() => setConfirmingDelete(true)} {...editDisabled}>
+            <button
+              type="button"
+              className="task-modal-delete"
+              onClick={() => setConfirmingDelete(true)}
+              {...editDisabled}
+              // The shared demo account can't delete (the server refuses too)
+              {...(currentUser?.demo && !readOnly && { disabled: true, title: "The demo account can't delete tasks" })}
+            >
               Delete task
             </button>
           )}

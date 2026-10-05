@@ -2,14 +2,23 @@ import bcrypt from 'bcryptjs'
 import { Router } from 'express'
 import type pg from 'pg'
 import { z } from 'zod'
-import { conflict, HttpError } from '../errors.ts'
+import { DEMO_EMAIL, isDemoEmail } from '../demo/account.ts'
+import { conflict, HttpError, notFound } from '../errors.ts'
 import type { Sessions } from './session.ts'
 
 /** What the API returns for a user; never includes the password hash */
 export interface PublicUser {
   id: string
   email: string
+  /** The shared demo account, which has some limits (e.g. it can't delete tasks) */
+  demo: boolean
 }
+
+const toPublicUser = ({ id, email }: { id: string; email: string }): PublicUser => ({
+  id,
+  email,
+  demo: isDemoEmail(email),
+})
 
 const email = z.string().trim().toLowerCase()
 
@@ -38,7 +47,7 @@ export function authRoutes(pool: pg.Pool, sessions: Sessions, { bcryptRounds }: 
   router.post('/register', async (req, res) => {
     const { email, password } = registerBody.parse(req.body)
     const passwordHash = await bcrypt.hash(password, bcryptRounds)
-    const { rows: [user] } = await pool.query<PublicUser>(
+    const { rows: [user] } = await pool.query<{ id: string; email: string }>(
       `INSERT INTO users (email, password_hash) VALUES ($1, $2)
        ON CONFLICT (email) DO NOTHING
        RETURNING id, email`,
@@ -47,12 +56,12 @@ export function authRoutes(pool: pg.Pool, sessions: Sessions, { bcryptRounds }: 
     if (!user) throw conflict('An account with this email already exists')
 
     await sessions.start(res, user.id)
-    res.status(201).json(user)
+    res.status(201).json(toPublicUser(user))
   })
 
   router.post('/login', async (req, res) => {
     const { email, password } = loginBody.parse(req.body)
-    const { rows: [user] } = await pool.query<PublicUser & { password_hash: string }>(
+    const { rows: [user] } = await pool.query<{ id: string; email: string; password_hash: string }>(
       'SELECT id, email, password_hash FROM users WHERE email = $1',
       [email],
     )
@@ -60,7 +69,18 @@ export function authRoutes(pool: pg.Pool, sessions: Sessions, { bcryptRounds }: 
     if (!user || !matches) throw invalidCredentials()
 
     await sessions.start(res, user.id)
-    res.json({ id: user.id, email: user.email } satisfies PublicUser)
+    res.json(toPublicUser(user))
+  })
+
+  // "Try Demo": signs in as the demo account without typing its (public) password
+  router.post('/demo', async (_req, res) => {
+    const { rows: [user] } = await pool.query<{ id: string; email: string }>(
+      'SELECT id, email FROM users WHERE email = $1',
+      [DEMO_EMAIL],
+    )
+    if (!user) throw notFound("The demo isn't set up on this server")
+    await sessions.start(res, user.id)
+    res.json(toPublicUser(user))
   })
 
   router.post('/logout', (_req, res) => {
@@ -69,7 +89,7 @@ export function authRoutes(pool: pg.Pool, sessions: Sessions, { bcryptRounds }: 
   })
 
   router.get('/me', sessions.requireAuth, async (_req, res) => {
-    const { rows: [user] } = await pool.query<PublicUser>('SELECT id, email FROM users WHERE id = $1', [
+    const { rows: [user] } = await pool.query<{ id: string; email: string }>('SELECT id, email FROM users WHERE id = $1', [
       res.locals.userId,
     ])
     if (!user) {
@@ -77,7 +97,7 @@ export function authRoutes(pool: pg.Pool, sessions: Sessions, { bcryptRounds }: 
       sessions.end(res)
       throw new HttpError(401, 'Not signed in')
     }
-    res.json(user)
+    res.json(toPublicUser(user))
   })
 
   return router

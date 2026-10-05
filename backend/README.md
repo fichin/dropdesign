@@ -24,13 +24,22 @@ Check it: http://localhost:3001/api/health should return `{"status":"ok","databa
 
 | Method | Path | Body | Returns |
 |---|---|---|---|
-| POST | `/api/auth/register` | `{ email, password }` | 201 `{ id, email }` and the session cookie; 409 if the email is taken; 400 for an invalid email or a password under 8 characters (or over 72 bytes) |
-| POST | `/api/auth/login` | `{ email, password }` | `{ id, email }` and the session cookie; 401 `Invalid email or password` for any wrong combination |
+| POST | `/api/auth/register` | `{ email, password }` | 201 `{ id, email, demo }` and the session cookie; 409 if the email is taken; 400 for an invalid email or a password under 8 characters (or over 72 bytes) |
+| POST | `/api/auth/login` | `{ email, password }` | `{ id, email, demo }` and the session cookie; 401 `Invalid email or password` for any wrong combination |
 | POST | `/api/auth/logout` | | 204, and clears the cookie |
-| GET | `/api/auth/me` | | `{ id, email }` of the signed-in user, or 401 |
+| GET | `/api/auth/me` | | `{ id, email, demo }` of the signed-in user, or 401 |
+| POST | `/api/auth/demo` | | Signs in as the demo account ("Try Demo"): `{ id, email, demo: true }` and the session cookie; 404 if the demo account doesn't exist |
 
 Emails are trimmed and lowercased, so `Ana@Example.com` and `ana@example.com` are
 the same account. Passwords are hashed with bcrypt (cost 12).
+
+### Demo
+
+The demo account (`demo@example.com` / `try-dropdesign`, in `src/demo/account.ts`) is
+public on purpose. It can do everything except delete tasks (403). `GET /api/demo/reset`
+restores the demo board (`src/demo/board.ts`) and the demo account; it needs
+`Authorization: Bearer <CRON_SECRET>` and doesn't exist when `CRON_SECRET` isn't set.
+Vercel's cron calls it daily.
 
 ### Sessions
 
@@ -117,6 +126,7 @@ setting.
 | `npm start` | API (production) |
 | `npm run migrate` | Applies new files in `migrations/`, in name order, each in a transaction |
 | `npm run seed` | Loads `shared/sampleBoard.ts` if the database has no boards |
+| `npm run demo:reset` | Replaces every board with the demo board and (re)creates the demo account |
 | `npm test` | API tests against a throwaway schema (needs `TEST_DATABASE_URL`) |
 | `npm run typecheck` | Type-checks `src/`, `test/` and `../shared/` |
 
@@ -129,9 +139,10 @@ backend/
     config.ts            environment variables, validated
     app.ts               Express app: middleware, routes, error handling
     server.ts            starts the app
+    vercel.ts            the same app as a Vercel function (bundled by ../scripts/build-vercel.mjs)
     errors.ts            HTTP errors (401, 404, 409) used by the routes
     auth/session.ts      session cookie: sign/verify the JWT, requireAuth middleware
-    auth/routes.ts       register, login, logout, me
+    auth/routes.ts       register, login, logout, me, demo ("Try Demo")
     boards/routes.ts     endpoints + request validation (zod)
     boards/repository.ts SQL for reading boards and adding/moving/editing/deleting tasks
     comments/routes.ts   comment endpoints + validation
@@ -141,6 +152,7 @@ backend/
     db/migrate.ts        `npm run migrate`
     db/sampleData.ts     inserts the sample board (used by seed.ts and the tests)
     db/seed.ts           `npm run seed`
+    demo/                demo account, demo board, the reset route, `npm run demo:reset`
   test/                  API tests
   scripts/dev.ts         `npm run dev`: runs the API, restarts it on src/ and ../shared/ changes
 ../shared/         types and sample data used by both frontend and backend

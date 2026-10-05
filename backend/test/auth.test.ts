@@ -32,7 +32,8 @@ describe('POST /api/auth/register', () => {
       password: PASSWORD,
     })
     assert.equal(status, 201)
-    assert.deepEqual(Object.keys(body).sort(), ['email', 'id'])
+    assert.deepEqual(Object.keys(body).sort(), ['demo', 'email', 'id'])
+    assert.equal(body.demo, false)
     assert.equal(body.email, 'new.user@example.com', 'email is trimmed and lowercased')
 
     const cookie = sessionCookie(setCookies)
@@ -91,7 +92,8 @@ describe('POST /api/auth/login', () => {
       password: PASSWORD,
     })
     assert.equal(status, 200)
-    assert.deepEqual(Object.keys(body).sort(), ['email', 'id'])
+    assert.deepEqual(Object.keys(body).sort(), ['demo', 'email', 'id'])
+    assert.equal(body.demo, false)
     assert.ok(sessionCookie(setCookies))
     assert.equal((await browser.api('GET', '/auth/me')).status, 200)
   })

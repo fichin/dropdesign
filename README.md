@@ -19,7 +19,7 @@ to a sample board, no account needed. Or log in with:
 The demo board is shared by everyone and resets every day at 04:00 UTC; the demo account
 can change anything except delete tasks.
 
-![DropDesign demo: logging in, dragging a task to In Progress, commenting on it, switching to dark mode and filtering the board](docs/demo.gif)
+![DropDesign demo: Try Demo, switching between the Grid, List, Column and Row views, dragging a task to In Progress, commenting on it, switching to dark mode, then searching and filtering](docs/demo.gif)
 
 ## Features
 
@@ -32,7 +32,8 @@ can change anything except delete tasks.
 - **Optimistic saving**: changes appear immediately and are saved in order; if the server rejects one, the board reloads and says why
 - **Offline copy**: the last saved board stays viewable (read-only) when the server can't be reached
 - **Dark mode**: follows the system setting until you choose, remembers the choice, no flash on load
-- **Accessibility**: text contrast measured at WCAG AA in both themes, screen reader announcements for drag-and-drop, focus handled in dialogs and menus
+- **Accessibility**: text and placeholder contrast measured at WCAG AA in both themes, screen reader announcements for drag-and-drop, focus handled in dialogs, menus and full-page messages
+- **Friendly edge cases**: a loading skeleton, empty states (empty column, empty board, no search results), a 404 page, and an error page with a reload button if something breaks
 - **Responsive** down to 360px phones, and **Export** of the board as JSON
 
 ## Screenshots
@@ -41,6 +42,10 @@ can change anything except delete tasks.
 |---|---|---|
 | **Light** | ![Board in light mode](docs/screenshots/board-light.png) | ![Login page in light mode](docs/screenshots/login-light.png) |
 | **Dark** | ![Board in dark mode](docs/screenshots/board-dark.png) | ![Login page in dark mode](docs/screenshots/login-dark.png) |
+
+The List view, sortable by status and due date:
+
+![List view in dark mode: every task as a table row with status, priority, due date and assignees](docs/screenshots/list-dark.png)
 
 ## Tech stack
 
@@ -108,18 +113,19 @@ and `npm run demo:reset` against it first.
 ## Tests
 
 ```bash
-npm test                 # frontend: 102 tests (Vitest)
-npm run coverage         # with a coverage report
+npm test                 # frontend: 173 tests (Vitest)
+npm run coverage         # with a coverage report (about 84% of lines)
 cd backend && npm test   # backend: 69 tests against TEST_DATABASE_URL
 ```
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push and pull request
-to `main`: lint, the frontend tests and the production build, plus the backend type-check and
-tests against a Postgres service container.
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on pushes to `main` and
+`feature/**` branches and on pull requests to `main`: lint, the frontend tests and the
+production build, plus the backend type-check and tests against a Postgres service container.
 
-The frontend tests focus on the logic that's easiest to break without noticing: the save
-queue and rollback, theme persistence (including the no-flash script in `index.html`),
-filters, drag-and-drop state, and the task modal and comments.
+The frontend tests focus on behaviour that's easy to break without noticing: the save queue
+and rollback, theme persistence (including the no-flash script in `index.html`), filters in
+every view, drag-and-drop state, the task modal and comments, routing and the 404 page, the
+error boundary, and the loading and empty states.
 
 ## Project layout
 

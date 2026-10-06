@@ -103,30 +103,149 @@
   font-size: 20px;
 }
 
-.spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid var(--slate-200);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+/* Loading: the board's outline, in the same layout as the real thing */
+.board-skeleton {
+  padding: 32px;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+.skeleton-block {
+  display: block;
+  border-radius: 8px;
+  background: var(--slate-100);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.45;
   }
 }
 
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.skeleton-icon {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+}
+
+.skeleton-heading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.skeleton-title {
+  width: min(240px, 70%);
+  height: 30px;
+}
+
+.skeleton-tabs {
+  width: min(480px, 100%);
+  height: 44px;
+  border-radius: 999px;
+}
+
+.skeleton-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 20px 0 24px;
+}
+
+.skeleton-search {
+  width: min(320px, 100%);
+  height: 38px;
+}
+
+.skeleton-chip {
+  width: 96px;
+  height: 34px;
+  border-radius: 999px;
+}
+
+.skeleton-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.skeleton-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--slate-100);
+  border-radius: 20px;
+  background: var(--slate-50);
+}
+
+.skeleton-column-title {
+  width: 40%;
+  height: 22px;
+  margin: 4px 0 6px;
+}
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--slate-100);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.skeleton-pill {
+  width: 72px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+.skeleton-line {
+  height: 14px;
+}
+
+.skeleton-line-short {
+  width: 60%;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .status-dot,
-  .spinner {
+  .status-dot {
     animation-duration: 3s;
+  }
+
+  /* Still shapes instead of a pulse */
+  .skeleton-block {
+    animation: none;
   }
 }
 
 @media (max-width: 767px) {
   .status-banner {
     padding: 10px 16px;
+  }
+
+  .board-skeleton {
+    padding: 24px 16px;
+  }
+
+  .skeleton-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  /* Stacked, like the real board on phones */
+  .skeleton-columns {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -267,10 +267,6 @@
     box-shadow 150ms ease;
 }
 
-.auth-field input::placeholder {
-  color: var(--slate-400);
-}
-
 .auth-field input:hover {
   border-color: var(--slate-400);
 }

@@ -12,6 +12,26 @@
   overflow-x: auto;
 }
 
+/* Board-level empty states (no tasks at all, or nothing matches the filters) */
+.board-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin: 20px 32px 0;
+  padding: 16px 20px;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: var(--slate-50);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.board-empty strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 /* Column view: the columns stacked, full width, at every screen size */
 .board-column .board,
 .board-row .board {
@@ -50,6 +70,10 @@
 @media (max-width: 767px) {
   .board-page {
     padding: 16px;
+  }
+
+  .board-empty {
+    margin: 16px 16px 0;
   }
 
   .board-row .column-tasks > .card,

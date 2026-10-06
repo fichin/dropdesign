@@ -17,10 +17,6 @@
   font-size: 14px;
 }
 
-.add-task-form input::placeholder {
-  color: var(--slate-400);
-}
-
 .add-task-form input:focus-visible {
   border-color: var(--focus-border);
 }

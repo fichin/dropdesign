@@ -34,10 +34,6 @@
   font-size: 14px;
 }
 
-.filter-search-input::placeholder {
-  color: var(--slate-400);
-}
-
 .filter-search-input:focus,
 .filter-search-input:focus-visible {
   border-color: var(--focus-border);

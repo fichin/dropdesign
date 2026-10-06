@@ -28,6 +28,8 @@
   --text: var(--slate-800);
   --text-muted: var(--slate-500);
   --border: var(--slate-200);
+  /* Input placeholders: at least 4.5:1 on a field (4.76:1 light, 5.65:1 dark) */
+  --placeholder: var(--text-muted);
   /* Fills behind white text */
   --primary: var(--indigo-600);
   --primary-hover: var(--indigo-700);
@@ -203,6 +205,12 @@ button {
 :focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+/* Every input and textarea; opacity: 1 because Firefox fades placeholders by default */
+::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
 }
 
 .visually-hidden {

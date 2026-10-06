@@ -61,6 +61,28 @@ function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
         )}
         <ProjectHeader title={board.title} view={view} onViewChange={setView} onExport={() => exportBoard(board)} />
         <FilterBar filters={filters} people={board.people} searchRef={searchRef} />
+        {filters.counts.total === 0 ? (
+          <div className="board-empty">
+            <p>
+              <strong>This board has no tasks yet.</strong>{' '}
+              {view === 'list'
+                ? 'Add the first one from the Grid, Column or Row view.'
+                : 'Add the first one with the + button on any column.'}
+            </p>
+          </div>
+        ) : (
+          filters.isFiltering &&
+          filters.counts.visible === 0 && (
+            <div className="board-empty">
+              <p>
+                <strong>No tasks match your search and filters.</strong>
+              </p>
+              <button type="button" className="button-secondary" onClick={filters.clear}>
+                Clear filters
+              </button>
+            </div>
+          )
+        )}
         <div id={BOARD_VIEW_ID} role="tabpanel" aria-labelledby={viewTabId(view)}>
           {view === 'list' ? (
             <div className="board-page">

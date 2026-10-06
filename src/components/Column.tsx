@@ -90,7 +90,10 @@ function Column({
             <SortableCard key={task.id} task={task} disabled={readOnly} onOpen={onOpenTask} search={search} />
           ))}
         </SortableContext>
-        {filtering && tasks.length === 0 && <p className="column-empty">No matching tasks</p>}
+        {tasks.length === 0 && !isAdding && (
+          // Still a drop zone: the message gives way as soon as a dragged card arrives
+          <p className="column-empty">{filtering ? 'No matching tasks' : 'No tasks yet'}</p>
+        )}
       </div>
     </section>
   )

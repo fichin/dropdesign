@@ -68,10 +68,46 @@ export function BoardPlaceholder({ status, error, onRetry }: BoardPlaceholderPro
       </div>
     )
   }
+  return <BoardSkeleton />
+}
+
+/** Cards per column in the skeleton, roughly the shape of a real board */
+const SKELETON_CARDS = [3, 2, 2]
+
+/**
+ * The board's outline while it loads. Screen readers hear "Loading the board…" once; the
+ * grey shapes are hidden from them.
+ */
+function BoardSkeleton() {
   return (
-    <div className="board-placeholder" role="status">
-      <span className="spinner" aria-hidden="true" />
-      <p>Loading board…</p>
+    <div className="board-skeleton" role="status" aria-busy="true">
+      <span className="visually-hidden">Loading the board…</span>
+      <div className="skeleton-header" aria-hidden="true">
+        <span className="skeleton-block skeleton-icon" />
+        <div className="skeleton-heading">
+          <span className="skeleton-block skeleton-title" />
+          <span className="skeleton-block skeleton-tabs" />
+        </div>
+      </div>
+      <div className="skeleton-filters" aria-hidden="true">
+        <span className="skeleton-block skeleton-search" />
+        <span className="skeleton-block skeleton-chip" />
+        <span className="skeleton-block skeleton-chip" />
+      </div>
+      <div className="skeleton-columns" aria-hidden="true">
+        {SKELETON_CARDS.map((cards, column) => (
+          <div key={column} className="skeleton-column">
+            <span className="skeleton-block skeleton-column-title" />
+            {Array.from({ length: cards }, (_, card) => (
+              <div key={card} className="skeleton-card">
+                <span className="skeleton-block skeleton-pill" />
+                <span className="skeleton-block skeleton-line" />
+                <span className="skeleton-block skeleton-line skeleton-line-short" />
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

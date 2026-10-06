@@ -139,7 +139,7 @@ function TaskList({ board, isVisible, search, onOpenTask }: TaskListProps) {
           {rows.length === 0 && (
             <tr>
               <td colSpan={5} className="task-list-empty">
-                No matching tasks
+                {Object.keys(board.tasks).length === 0 ? 'No tasks yet' : 'No matching tasks'}
               </td>
             </tr>
           )}

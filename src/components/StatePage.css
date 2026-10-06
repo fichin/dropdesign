@@ -1,0 +1,91 @@
+/* Full-page messages (404, error). Theme tokens only, so light and dark both work */
+.state-page {
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: 32px 16px;
+  background: var(--bg);
+}
+
+.state-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+}
+
+/* The planet mark from the header */
+.state-logo {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 24px;
+  border-radius: 50%;
+  background: var(--indigo-100);
+}
+
+.state-logo::before {
+  content: '';
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(var(--indigo-400) 50%, var(--indigo-600) 50%);
+}
+
+.state-eyebrow {
+  color: var(--primary-text);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.state-title {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* Focused on mount for screen readers; no ring, since nothing here is interactive */
+.state-title:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.state-text {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.state-text code {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--slate-100);
+  color: var(--text);
+  font-size: 0.9em;
+}
+
+.state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+/* Links styled as the app's buttons */
+.state-actions .button-primary,
+.state-actions .button-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 18px;
+  font-size: 14px;
+  text-decoration: none;
+}

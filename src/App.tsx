@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import AuthPage from './components/AuthPage'
 import BoardScreen from './components/BoardScreen'
+import NotFoundPage from './components/NotFoundPage'
 import { usePath } from './routing'
 import { useAuth } from './state/useAuth'
 
@@ -10,13 +11,18 @@ function App() {
   const { auth, login, register, tryDemo, logout, sessionEnded } = useAuth()
   const { path, navigate } = usePath()
   const authMode = AUTH_PATHS[path as keyof typeof AUTH_PATHS]
+  const isBoard = path === '/'
 
-  // Signed out → the login page; signed in → away from login/register; anything else → the board
+  // Signed out → the login page; signed in → away from login/register. Any other path shows
+  // the 404 page instead of redirecting, so a mistyped link says so
   useEffect(() => {
-    if (auth.status === 'signedOut' && !authMode) navigate('/login', { replace: true })
+    if (auth.status === 'signedOut' && isBoard) navigate('/login', { replace: true })
     else if (auth.status === 'signedIn' && authMode) navigate('/', { replace: true })
-    else if (!authMode && path !== '/') navigate('/', { replace: true })
-  }, [auth.status, authMode, path, navigate])
+  }, [auth.status, authMode, isBoard, navigate])
+
+  if (!authMode && !isBoard) {
+    return <NotFoundPage path={path} signedIn={auth.status === 'signedIn'} onNavigate={navigate} />
+  }
 
   if (authMode) {
     if (auth.status === 'signedIn') return null // redirecting to the board

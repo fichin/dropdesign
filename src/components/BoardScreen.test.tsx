@@ -117,6 +117,42 @@ describe('BoardScreen views', { timeout: 20_000 }, () => {
     expect(within(row).getByText('Completed')).toBeInTheDocument()
   })
 
+  it('explains an empty board, in the board views and the List view', async () => {
+    const empty = board()
+    empty.tasks = {}
+    for (const id of empty.columnOrder) empty.columns[id].taskIds = []
+    mocked.getBoard.mockResolvedValue(empty)
+    const { user } = await setup()
+
+    expect(screen.getByText('This board has no tasks yet.')).toBeInTheDocument()
+    expect(screen.getByText(/with the \+ button on any column/)).toBeInTheDocument()
+    expect(within(screen.getByRole('tabpanel')).getAllByText('No tasks yet')).toHaveLength(3) // each column
+
+    await user.click(screen.getByRole('tab', { name: 'List View' }))
+    expect(screen.getByText(/from the Grid, Column or Row view/)).toBeInTheDocument()
+    expect(within(screen.getByRole('table')).getByText('No tasks yet')).toBeInTheDocument()
+  })
+
+  it('says when nothing matches the search and filters, with a way back', async () => {
+    const { user } = await setup()
+    await user.type(screen.getByRole('searchbox'), 'zzz-nothing')
+    expect(screen.getByText('No tasks match your search and filters.')).toBeInTheDocument()
+
+    // The board-level "Clear filters" (the filter bar has one too)
+    const clear = screen.getAllByRole('button', { name: 'Clear filters' }).find((b) => b.closest('.board-empty'))!
+    await user.click(clear)
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    expect(screen.queryByText('No tasks match your search and filters.')).not.toBeInTheDocument()
+    expect(shownTitles()).toHaveLength(5)
+  })
+
+  it('shows no empty message while some tasks match', async () => {
+    const { user } = await setup()
+    await user.type(screen.getByRole('searchbox'), 'pricing')
+    expect(screen.queryByText('No tasks match your search and filters.')).not.toBeInTheDocument()
+    expect(screen.queryByText('This board has no tasks yet.')).not.toBeInTheDocument()
+  })
+
   it('opens the same task modal from every view', async () => {
     const { user } = await setup()
     for (const tab of ['Grid View', 'Column View', 'Row View']) {

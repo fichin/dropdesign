@@ -9,7 +9,10 @@ import { resetDemo } from './board.ts'
  * GET /api/demo/reset restores the demo board. Vercel's cron calls it daily with
  * "Authorization: Bearer <CRON_SECRET>". Without a CRON_SECRET the route doesn't exist.
  */
-export function demoRoutes(pool: pg.Pool, { cronSecret, bcryptRounds }: { cronSecret?: string; bcryptRounds: number }) {
+export function demoRoutes(
+  pool: pg.Pool,
+  { cronSecret, bcryptRounds, prune }: { cronSecret?: string; bcryptRounds: number; /** Daily rate-limit cleanup */ prune?: () => Promise<number> },
+) {
   const router = Router()
 
   router.get('/demo/reset', async (req, res) => {
@@ -20,7 +23,9 @@ export function demoRoutes(pool: pg.Pool, { cronSecret, bcryptRounds }: { cronSe
       throw new HttpError(401, 'Not authorized')
     }
     const boardId = await withTransaction(pool, (client) => resetDemo(client, { bcryptRounds }))
-    res.json({ reset: true, boardId })
+    // The cron's daily housekeeping: expired login/register rate-limit rows
+    const prunedRateLimits = (await prune?.()) ?? 0
+    res.json({ reset: true, boardId, prunedRateLimits })
   })
 
   return router

@@ -3,12 +3,13 @@ import cors from 'cors'
 import express, { type ErrorRequestHandler } from 'express'
 import type pg from 'pg'
 import { z } from 'zod'
+import { createRateLimiter, type RateLimitOptions } from './auth/rateLimit.ts'
 import { authRoutes } from './auth/routes.ts'
 import { createSessions, type SessionOptions } from './auth/session.ts'
 import { boardRoutes } from './boards/routes.ts'
 import { commentRoutes } from './comments/routes.ts'
 import { demoRoutes } from './demo/routes.ts'
-import { HttpError } from './errors.ts'
+import { HttpError, TooManyRequestsError } from './errors.ts'
 
 interface AppOptions {
   pool: pg.Pool
@@ -20,11 +21,16 @@ interface AppOptions {
   }
   /** Enables GET /api/demo/reset for Vercel's daily cron (CRON_SECRET) */
   cronSecret?: string
+  /** Login/register rate limiting (on by default); false turns it off, e.g. for most tests */
+  rateLimit?: RateLimitOptions | false
 }
 
-export function createApp({ pool, corsOrigin, auth, cronSecret }: AppOptions) {
+export function createApp({ pool, corsOrigin, auth, cronSecret, rateLimit = {} }: AppOptions) {
   const app = express()
+  // Don't advertise the framework ("X-Powered-By: Express") to anyone probing for known bugs
+  app.disable('x-powered-by')
   const sessions = createSessions(auth)
+  const limiter = rateLimit === false ? null : createRateLimiter(pool, rateLimit)
 
   // credentials: lets a browser on corsOrigin send the session cookie (needed if the
   // frontend and API are on different origins; in development Vite proxies to one origin)
@@ -42,9 +48,9 @@ export function createApp({ pool, corsOrigin, auth, cronSecret }: AppOptions) {
     }
   })
 
-  app.use('/api/auth', authRoutes(pool, sessions, { bcryptRounds: auth.bcryptRounds ?? 12 }))
+  app.use('/api/auth', authRoutes(pool, sessions, { bcryptRounds: auth.bcryptRounds ?? 12, limiter }))
   // Its own secret instead of a session (called by the cron, not a browser)
-  app.use('/api', demoRoutes(pool, { cronSecret, bcryptRounds: auth.bcryptRounds ?? 12 }))
+  app.use('/api', demoRoutes(pool, { cronSecret, bcryptRounds: auth.bcryptRounds ?? 12, prune: limiter?.prune }))
 
   // Signed-in users only: requests without a valid session get 401 before any database work
   app.use(['/api/boards', '/api/tasks', '/api/comments'], sessions.requireAuth)
@@ -62,6 +68,7 @@ export function createApp({ pool, corsOrigin, auth, cronSecret }: AppOptions) {
 // Express 5 passes errors thrown in async route handlers here
 const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
   if (error instanceof HttpError) {
+    if (error instanceof TooManyRequestsError) res.set('Retry-After', String(error.retryAfterSeconds))
     res.status(error.status).json({ error: error.message })
     return
   }

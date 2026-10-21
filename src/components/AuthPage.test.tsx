@@ -11,6 +11,19 @@ function setup(onTryDemo = vi.fn(() => Promise.resolve())) {
   return { user, onSubmit, onTryDemo }
 }
 
+describe('AuthPage: rate limiting', () => {
+  it("shows the server's 429 message (when to try again) and lets the person retry later", async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi.fn(() => Promise.reject(new ApiError(429, 'Too many login attempts. Try again in 15 minutes.')))
+    render(<AuthPage mode="login" onSubmit={onSubmit} onSwitchMode={vi.fn()} />)
+    await user.type(screen.getByLabelText('Email'), 'ana@example.com')
+    await user.type(screen.getByLabelText('Password'), 'not-it')
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Too many login attempts. Try again in 15 minutes.')
+    expect(screen.getByRole('button', { name: 'Log in' })).toBeEnabled()
+  })
+})
+
 describe('AuthPage: Try Demo', () => {
   it('signs in with one click, no credentials typed', async () => {
     const { user, onTryDemo, onSubmit } = setup()

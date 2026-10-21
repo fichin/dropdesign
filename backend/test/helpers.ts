@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import type { AddressInfo } from 'node:net'
 import type pg from 'pg'
 import type { Board } from '../../shared/kanban.ts'
+import type { RateLimitOptions } from '../src/auth/rateLimit.ts'
 import { createApp } from '../src/app.ts'
 import { runMigrations } from '../src/db/migrations.ts'
 import { createPool } from '../src/db/pool.ts'
@@ -14,7 +15,14 @@ export const TEST_JWT_SECRET = 'test-only-secret-that-is-at-least-32-characters-
  * Starts the API against a brand-new schema in the test database, so tests never
  * touch real data. Needs TEST_DATABASE_URL (Neon's direct host, see .env.example).
  */
-export async function startTestServer({ cronSecret }: { cronSecret?: string } = {}) {
+export async function startTestServer({
+  cronSecret,
+  rateLimit = false,
+}: {
+  cronSecret?: string
+  /** Off by default: most tests sign up and log in far more often than the limits allow */
+  rateLimit?: RateLimitOptions | false
+} = {}) {
   const url = process.env.TEST_DATABASE_URL
   if (!url) throw new Error('TEST_DATABASE_URL is not set (see backend/.env.example)')
 
@@ -30,6 +38,7 @@ export async function startTestServer({ cronSecret }: { cronSecret?: string } = 
     // A low bcrypt cost keeps tests fast; production uses 12
     auth: { jwtSecret: TEST_JWT_SECRET, secureCookies: false, bcryptRounds: 4 },
     cronSecret,
+    rateLimit,
   })
   const server = app.listen(0)
   await new Promise((resolve) => server.once('listening', resolve))

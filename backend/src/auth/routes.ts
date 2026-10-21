@@ -4,6 +4,7 @@ import type pg from 'pg'
 import { z } from 'zod'
 import { DEMO_EMAIL, isDemoEmail } from '../demo/account.ts'
 import { conflict, HttpError, notFound } from '../errors.ts'
+import { RULES, type RateLimiter, type Rule } from './rateLimit.ts'
 import type { Sessions } from './session.ts'
 
 /** What the API returns for a user; never includes the password hash */
@@ -36,7 +37,11 @@ const loginBody = z.object({ email, password: z.string() })
 
 const invalidCredentials = () => new HttpError(401, 'Invalid email or password')
 
-export function authRoutes(pool: pg.Pool, sessions: Sessions, { bcryptRounds }: { bcryptRounds: number }) {
+export function authRoutes(
+  pool: pg.Pool,
+  sessions: Sessions,
+  { bcryptRounds, limiter }: { bcryptRounds: number; /** null: no rate limiting (most tests) */ limiter: RateLimiter | null },
+) {
   const router = Router()
 
   // Compared against when the email doesn't exist, so a login for an unknown email takes
@@ -46,6 +51,8 @@ export function authRoutes(pool: pg.Pool, sessions: Sessions, { bcryptRounds }: 
 
   router.post('/register', async (req, res) => {
     const { email, password } = registerBody.parse(req.body)
+    // Counted before the (deliberately slow) hash, so a flood of sign-ups is cheap to refuse
+    await limiter?.enforce([[RULES.registerPerIp, limiter.clientIp(req)]], 'sign-up attempts')
     const passwordHash = await bcrypt.hash(password, bcryptRounds)
     const { rows: [user] } = await pool.query<{ id: string; email: string }>(
       `INSERT INTO users (email, password_hash) VALUES ($1, $2)
@@ -61,6 +68,18 @@ export function authRoutes(pool: pg.Pool, sessions: Sessions, { bcryptRounds }: 
 
   router.post('/login', async (req, res) => {
     const { email, password } = loginBody.parse(req.body)
+
+    // Every attempt is counted as a failure *before* the password is checked, so a burst of
+    // parallel guesses can't all get through on a count that hasn't caught up; a correct
+    // password gives the attempt back below. The public demo account has no per-email
+    // limit (its password is published), only the per-IP one.
+    const ip = limiter?.clientIp(req) ?? ''
+    const perEmail = !isDemoEmail(email)
+    await limiter?.enforce(
+      [[RULES.loginPerIp, ip], ...(perEmail ? ([[RULES.loginPerEmail, email]] as [Rule, string][]) : [])],
+      'login attempts',
+    )
+
     const { rows: [user] } = await pool.query<{ id: string; email: string; password_hash: string }>(
       'SELECT id, email, password_hash FROM users WHERE email = $1',
       [email],
@@ -68,6 +87,10 @@ export function authRoutes(pool: pg.Pool, sessions: Sessions, { bcryptRounds }: 
     const matches = await bcrypt.compare(password, user?.password_hash ?? (await getDummyHash()))
     if (!user || !matches) throw invalidCredentials()
 
+    // Not a failure after all: the IP gets its attempt back, the account's failures are cleared
+    if (limiter) {
+      await Promise.all([limiter.release(RULES.loginPerIp, ip), perEmail && limiter.reset(RULES.loginPerEmail, email)])
+    }
     await sessions.start(res, user.id)
     res.json(toPublicUser(user))
   })

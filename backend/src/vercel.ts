@@ -14,4 +14,7 @@ export default createApp({
   corsOrigin: config.CORS_ORIGIN,
   auth: { jwtSecret: config.JWT_SECRET, secureCookies: config.NODE_ENV === 'production' },
   cronSecret: config.CRON_SECRET,
+  // Vercel's edge sets x-real-ip from the connection it accepted (a client can't choose it),
+  // and functions are only reachable through that edge. See RateLimitOptions.clientIpHeader
+  rateLimit: { clientIpHeader: 'x-real-ip' },
 })

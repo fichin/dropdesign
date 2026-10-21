@@ -1,0 +1,19 @@
+# Weekly dependency updates for the frontend and the backend, minor and patch bumps grouped
+# into one pull request per directory so CI checks them together
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]

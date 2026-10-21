@@ -142,3 +142,7 @@ docs/           Demo GIF and screenshots
 - **Live updates**: other people's changes appear when you reload (no websockets yet)
 - **Invite**: shown in the top bar, not wired up
 - **Password reset**
+
+## License
+
+[MIT](LICENSE) © Filip Krstev

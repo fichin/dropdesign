@@ -1,8 +1,12 @@
 {
-  "name": "frontend-project",
+  "name": "dropdesign",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

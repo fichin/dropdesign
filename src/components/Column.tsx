@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { horizontalListSortingStrategy, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import type { Column as ColumnType, Task } from '../../shared/kanban.ts'
 import AddTaskForm from './AddTaskForm'
 import { PlusIcon } from './icons'
@@ -44,6 +44,10 @@ function Column({
     data: { type: 'column', taskIds: column.taskIds },
   })
   const titleId = `column-title-${column.id}`
+  // dnd-kit re-renders every card in the column whenever `items` is a new array, so keep the
+  // same array until the ids or their order change (not, say, when one task's title is edited)
+  const idsKey = tasks.map((task) => task.id).join('\n')
+  const items = useMemo(() => (idsKey ? idsKey.split('\n') : []), [idsKey])
 
   return (
     <section
@@ -83,7 +87,7 @@ function Column({
             Where a dropped card lands is worked out against the full column in Board */}
         <SortableContext
           id={column.id}
-          items={tasks.map((task) => task.id)}
+          items={items}
           strategy={orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy}
         >
           {tasks.map((task) => (
@@ -99,4 +103,17 @@ function Column({
   )
 }
 
-export default Column
+/**
+ * Board builds each column's task list afresh on every render, so `tasks` is compared item by
+ * item and every other prop by identity: a column re-renders only when something it shows changed
+ */
+function sameColumnProps(prev: ColumnProps, next: ColumnProps) {
+  const keys = new Set([...Object.keys(prev), ...Object.keys(next)]) as Set<keyof ColumnProps>
+  return [...keys].every((key) =>
+    key === 'tasks'
+      ? prev.tasks.length === next.tasks.length && prev.tasks.every((task, i) => task === next.tasks[i])
+      : Object.is(prev[key], next[key]),
+  )
+}
+
+export default memo(Column, sameColumnProps)

@@ -47,6 +47,14 @@ export function useBoardFilters(board: Board | null) {
     return next
   }
 
+  // Stable, so callbacks built on it (BoardScreen's onAddTask) don't change on every render
+  const clear = useCallback(() => {
+    setQuery('')
+    setPriorities(new Set())
+    setAssigneeIds(new Set())
+    setOverdueOnly(false)
+  }, [])
+
   return {
     query,
     setQuery,
@@ -63,12 +71,7 @@ export function useBoardFilters(board: Board | null) {
     isFiltering,
     counts,
     /** Search and every filter, back to showing all tasks */
-    clear: () => {
-      setQuery('')
-      setPriorities(new Set())
-      setAssigneeIds(new Set())
-      setOverdueOnly(false)
-    },
+    clear,
   }
 }
 

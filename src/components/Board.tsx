@@ -13,7 +13,7 @@ import {
   type DragStartEvent,
   type UniqueIdentifier,
 } from '@dnd-kit/core'
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { boardReducer, findColumnId } from '../state/boardReducer'
 import type { Board as BoardType, Task } from '../../shared/kanban.ts'
 import Card from './Card'
@@ -50,6 +50,18 @@ const showAll = () => true
 // Enter is left free so it can open a card's details
 const KEYBOARD_CODES = { start: ['Space'], cancel: ['Escape'], end: ['Space'] }
 
+// Sensor options live outside the component: useSensor memoizes on the options object, and a new
+// one on every render would rebuild dnd-kit's context and re-render every card on the board.
+// A few pixels of movement before a drag starts, so plain clicks still work
+const MOUSE_OPTIONS = { activationConstraint: { distance: 5 } }
+// Press and hold on touch screens, so swiping still scrolls the page
+const TOUCH_OPTIONS = { activationConstraint: { delay: 250, tolerance: 8 } }
+// Space to pick up, arrow keys to move, Space to drop, Esc to cancel
+const KEYBOARD_OPTIONS = {
+  vertical: { coordinateGetter: kanbanKeyboardCoordinates, keyboardCodes: KEYBOARD_CODES },
+  horizontal: { coordinateGetter: laneKeyboardCoordinates, keyboardCodes: KEYBOARD_CODES },
+}
+
 const SCREEN_READER_INSTRUCTIONS = {
   draggable:
     'Press Enter to open the task details. To move the task, press Space to pick it up, ' +
@@ -77,15 +89,9 @@ function Board({
   const shown = preview ?? board
 
   const sensors = useSensors(
-    // A few pixels of movement before a drag starts, so plain clicks still work
-    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    // Press and hold on touch screens, so swiping still scrolls the page
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
-    // Space to pick up, arrow keys to move, Space to drop, Esc to cancel
-    useSensor(KeyboardSensor, {
-      coordinateGetter: cardsRun === 'horizontal' ? laneKeyboardCoordinates : kanbanKeyboardCoordinates,
-      keyboardCodes: KEYBOARD_CODES,
-    }),
+    useSensor(MouseSensor, MOUSE_OPTIONS),
+    useSensor(TouchSensor, TOUCH_OPTIONS),
+    useSensor(KeyboardSensor, KEYBOARD_OPTIONS[cardsRun]),
   )
 
   function resetDrag() {
@@ -223,4 +229,6 @@ function Board({
   )
 }
 
-export default Board
+// Memoized so that state elsewhere on the screen (the open task, the filter menus) doesn't
+// re-render the board; BoardScreen passes it stable callbacks for this
+export default memo(Board)

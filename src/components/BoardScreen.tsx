@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import type { User } from '../api/client'
 import { findColumnId, getTeamMembers } from '../state/boardReducer'
 import { useBoardView, viewTabId } from '../state/boardView'
@@ -32,6 +32,20 @@ function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
   const searchRef = useRef<HTMLInputElement>(null)
   // Grid, List, Column or Row: all show the same board, search and filters
   const [view, setView] = useBoardView()
+
+  // Every callback handed to the (memoized) Board keeps its identity between renders,
+  // or opening a task or typing a search would re-render every card
+  const { addTask } = sync
+  const clearFilters = filters.clear
+  const handleAddTask = useCallback(
+    (columnId: string, title: string) => {
+      addTask(columnId, title)
+      // A new task might not match the search/filters and would vanish as soon as it's
+      // added, so show everything again
+      clearFilters()
+    },
+    [addTask, clearFilters],
+  )
 
   if (!board) {
     return <BoardPlaceholder status={status} error={loadError} onRetry={retry} />
@@ -93,12 +107,7 @@ function BoardScreen({ user, onLogout, onUnauthorized }: BoardScreenProps) {
               board={board}
               layout={view}
               readOnly={readOnly}
-              onAddTask={(columnId, title) => {
-                sync.addTask(columnId, title)
-                // A new task might not match the search/filters and would vanish as soon as it's
-                // added, so show everything again
-                filters.clear()
-              }}
+              onAddTask={handleAddTask}
               onMoveTask={sync.moveTask}
               onOpenTask={setOpenTaskId}
               isVisible={filters.matches}

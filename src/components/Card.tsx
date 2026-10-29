@@ -1,4 +1,4 @@
-import type { ComponentPropsWithRef } from 'react'
+import { memo, type ComponentPropsWithRef } from 'react'
 import { PRIORITY_LABELS, type Task } from '../../shared/kanban.ts'
 import DueDate from './DueDate'
 import Highlight from './Highlight'
@@ -91,4 +91,6 @@ function Card({ task, search = '', className, ...articleProps }: CardProps) {
   )
 }
 
-export default Card
+// Memoized: a board can hold thousands of cards, and a card only needs to render again when
+// one of its own props changes (see SortableCard, which keeps those props stable)
+export default memo(Card)

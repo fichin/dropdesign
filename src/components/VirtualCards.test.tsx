@@ -129,6 +129,42 @@ describe('Board, Column view, long columns (virtualized)', () => {
     expect(dragged).not.toHaveClass('card-placeholder')
   })
 
+  it('tells screen readers where each card sits in the whole column', () => {
+    const { todo, card } = setup(VIRTUALIZE_COLUMN_FROM + 50)
+    const list = todo.querySelector<HTMLElement>('.column-virtual-list')!
+    expect(list).toHaveAttribute('role', 'list')
+    expect(list.querySelectorAll(':scope > [role="listitem"]').length).toBeLessThan(40)
+    const item = (title: string) => card(title).closest('[role="listitem"]')
+    expect(item('Task 0')).toHaveAttribute('aria-posinset', '1')
+    expect(item('Task 3')).toHaveAttribute('aria-posinset', '4')
+    expect(item('Task 149')).toHaveAttribute('aria-posinset', '150')
+    expect(item('Task 3')).toHaveAttribute('aria-setsize', '150')
+    // The card itself is unchanged: a button named by its content, with its title as a heading
+    expect(card('Task 3')).toHaveAttribute('role', 'button')
+    expect(within(card('Task 3')).getByRole('heading', { level: 3 })).toHaveTextContent('Task 3')
+  })
+
+  it('counts only the cards that match the filters', () => {
+    mockCardHeight(CARD_HEIGHT)
+    vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    render(
+      <Board
+        board={longBoard(VIRTUALIZE_COLUMN_FROM + 50)}
+        layout="column"
+        readOnly={false}
+        onAddTask={() => {}}
+        onMoveTask={() => {}}
+        onOpenTask={() => {}}
+        isVisible={(task) => task.title.endsWith('0')}
+        filtering
+      />,
+    )
+    const todo = screen.getByRole('region', { name: /To Do/ })
+    expect(within(todo).getByRole('heading', { level: 2 })).toHaveTextContent('To Do (15 of 150)')
+    expect(within(todo).getAllByRole('listitem')[1]).toHaveAttribute('aria-setsize', '15')
+    expect(within(todo).getAllByRole('listitem')[1]).toHaveAttribute('aria-posinset', '2')
+  })
+
   it('opens a rendered card', async () => {
     const { user, onOpenTask, card } = setup(VIRTUALIZE_COLUMN_FROM + 50)
     await user.click(card('Task 3'))

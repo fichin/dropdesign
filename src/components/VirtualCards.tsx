@@ -72,8 +72,11 @@ function VirtualCards({ tasks, activeTaskId, readOnly, onOpenTask, search }: Vir
   })
 
   return (
+    // A list, so screen readers can tell where each card sits ("3 of 1,667") though only some
+    // are in the page. Short columns have no list roles, as before
     <div
       ref={listRef}
+      role="list"
       className="column-virtual-list"
       style={{ height: virtualizer.getTotalSize() }}
       onFocus={(event) => {
@@ -86,6 +89,9 @@ function VirtualCards({ tasks, activeTaskId, readOnly, onOpenTask, search }: Vir
           key={item.key}
           ref={virtualizer.measureElement}
           data-index={item.index}
+          role="listitem"
+          aria-setsize={tasks.length}
+          aria-posinset={item.index + 1}
           className="column-virtual-item"
           style={{ transform: `translateY(${item.start - scrollMargin}px)` }}
         >

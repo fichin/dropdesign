@@ -159,9 +159,9 @@ and `npm run demo:reset` against it first.
 ## Tests
 
 ```bash
-npm test                 # frontend: 173 tests (Vitest)
+npm test                 # frontend: 209 tests (Vitest)
 npm run coverage         # with a coverage report (about 84% of lines)
-cd backend && npm test   # backend: 69 tests against TEST_DATABASE_URL
+cd backend && npm test   # backend: 82 tests against TEST_DATABASE_URL
 ```
 
 CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on pushes to `main` and

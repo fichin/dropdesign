@@ -25,6 +25,11 @@ describe('AuthPage: rate limiting', () => {
 })
 
 describe('AuthPage: Try Demo', () => {
+  it('links to the performance demo, which needs no account', () => {
+    setup()
+    expect(screen.getByRole('link', { name: 'Performance demo' })).toHaveAttribute('href', '/perf')
+  })
+
   it('signs in with one click, no credentials typed', async () => {
     const { user, onTryDemo, onSubmit } = setup()
     await user.click(screen.getByRole('button', { name: 'Try Demo' }))

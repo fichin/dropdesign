@@ -129,7 +129,8 @@ describe('TaskList with a long list (virtualized)', () => {
 
   afterEach(() => scrollWindowTo(0))
 
-  it('keeps rendering every row up to the threshold, exactly as before', () => {
+  // 300 full rows take a few seconds in jsdom, more while the other test files run alongside
+  it('keeps rendering every row up to the threshold, exactly as before', { timeout: 20_000 }, () => {
     const { table, titles } = setupLong(LIST_VIRTUALIZATION_THRESHOLD)
     expect(titles()).toHaveLength(LIST_VIRTUALIZATION_THRESHOLD)
     expect(table).not.toHaveAttribute('aria-rowcount')

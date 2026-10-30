@@ -6,7 +6,7 @@ import { vi } from 'vitest'
  * (and everything else none), which is enough for the virtualizer to render a realistic window.
  * Undone by vi.restoreAllMocks() after each test.
  */
-function mockHeight(height: number, matches: (element: HTMLElement) => boolean) {
+export function mockHeight(height: number, matches: (element: HTMLElement) => boolean) {
   const heightOf = (element: HTMLElement) => (matches(element) ? height : 0)
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
     const h = heightOf(this)

@@ -1,0 +1,133 @@
+.perf-brand {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.perf-top-bar .button-secondary {
+  padding: 6px 14px;
+}
+
+.perf-banner {
+  padding: 10px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.perf-banner strong {
+  color: var(--text);
+}
+
+.perf-panel {
+  display: grid;
+  gap: 12px;
+  margin: 20px 32px 0;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.perf-panel h2 {
+  color: var(--text);
+  font-size: 18px;
+}
+
+.perf-intro,
+.perf-history {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.perf-warning {
+  padding: 8px 12px;
+  border: 1px solid var(--warning-border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.perf-load,
+.perf-capped-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.perf-label {
+  margin-right: 4px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.perf-live {
+  min-height: 1.5em;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.perf-results {
+  width: 100%;
+  max-width: 640px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.perf-results th,
+.perf-results td {
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.perf-results th {
+  width: 45%;
+  padding-right: 16px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.perf-results td {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.perf-history summary {
+  width: fit-content;
+  border-radius: 4px;
+  color: var(--primary-text);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.perf-history ol {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+  padding-left: 20px;
+}
+
+.perf-capped {
+  display: grid;
+}
+
+@media (max-width: 640px) {
+  .perf-banner {
+    padding: 10px 16px;
+  }
+
+  .perf-panel {
+    margin: 16px 16px 0;
+    padding: 16px;
+  }
+
+  .perf-results th {
+    width: 50%;
+  }
+}

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../api/client'
@@ -164,5 +164,39 @@ describe('BoardScreen views', { timeout: 20_000 }, () => {
     await user.click(screen.getByRole('tab', { name: 'List View' }))
     await user.click(screen.getByRole('button', { name: 'API error alerts' }))
     expect(await screen.findByRole('dialog', { name: 'Task: API error alerts' })).toBeInTheDocument()
+  })
+
+  it('gives focus back to the card or row that opened the task modal, in every view', async () => {
+    const { user } = await setup()
+    const closeWith = {
+      'the Close button': () => user.click(screen.getByRole('button', { name: 'Close' })),
+      // What the browser does on Escape: a cancel event on the dialog
+      Escape: async () => fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true })),
+      // The dialog element itself only receives clicks on its backdrop
+      'a backdrop click': () => user.click(screen.getByRole('dialog')),
+    }
+    for (const tab of ['Grid View', 'List View', 'Column View', 'Row View']) {
+      await user.click(screen.getByRole('tab', { name: tab }))
+      const panel = screen.getByRole('tabpanel')
+      // The card in the board views, the title button in the List view
+      const opener =
+        tab === 'List View'
+          ? within(panel).getByRole('button', { name: 'Pricing table' })
+          : within(panel).getByRole('heading', { name: 'Pricing table' }).closest('article')!
+      for (const [closedWith, close] of Object.entries(closeWith)) {
+        for (const openedWith of ['a click', 'Enter']) {
+          if (openedWith === 'a click') {
+            await user.click(opener)
+          } else {
+            act(() => opener.focus())
+            await user.keyboard('{Enter}')
+          }
+          await screen.findByRole('dialog', { name: 'Task: Pricing table' })
+          await close()
+          expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+          expect(opener, `${tab}: opened with ${openedWith}, closed with ${closedWith}`).toHaveFocus()
+        }
+      }
+    }
   })
 })

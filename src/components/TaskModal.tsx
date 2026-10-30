@@ -104,6 +104,9 @@ function TaskModal({
     saveTitle()
     saveDescription()
     commitDueDate()
+    // Close the dialog while it's still in the page: the browser then gives focus back to what
+    // opened it. onClose removes it from the page, and a removed dialog leaves focus on <body>
+    dialogRef.current?.close()
     onClose()
   }
 

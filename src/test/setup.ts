@@ -6,8 +6,13 @@ import { mockSystemTheme } from './matchMedia'
 // jsdom has no showModal. Like a browser's, this one opens the dialog and then focuses its
 // first focusable element (React's autoFocus runs while the dialog is still closed, so on
 // its own it has no effect)
+// It also remembers what had focus, and close() gives focus back to it, as browsers do, but
+// only while the dialog is still in the page: one already removed gives nothing back, so
+// focus is left on <body>
+const openedFrom = new WeakMap<HTMLDialogElement, Element | null>()
 if (!HTMLDialogElement.prototype.showModal) {
   HTMLDialogElement.prototype.showModal = function () {
+    openedFrom.set(this, document.activeElement)
     this.setAttribute('open', '')
     this.querySelector<HTMLElement>(
       '[autofocus], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
@@ -16,7 +21,11 @@ if (!HTMLDialogElement.prototype.showModal) {
 }
 if (!HTMLDialogElement.prototype.close) {
   HTMLDialogElement.prototype.close = function () {
+    if (!this.hasAttribute('open')) return
     this.removeAttribute('open')
+    const opener = openedFrom.get(this)
+    openedFrom.delete(this)
+    if (this.isConnected && opener instanceof HTMLElement && opener.isConnected) opener.focus()
   }
 }
 

@@ -97,3 +97,16 @@
   /* Keeps an empty column tall enough to drop into */
   min-height: 64px;
 }
+
+/* A long column (see VirtualCards in VirtualCards.tsx): the list is as tall as all its cards,
+   and each card in the page sits at its own offset, set inline */
+.column-virtual-list {
+  position: relative;
+}
+
+.column-virtual-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}

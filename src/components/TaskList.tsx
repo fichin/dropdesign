@@ -1,8 +1,9 @@
 import { defaultRangeExtractor, useWindowVirtualizer, type Range } from '@tanstack/react-virtual'
-import { useCallback, useLayoutEffect, useRef, useState, type ComponentPropsWithRef } from 'react'
+import { useCallback, useRef, useState, type ComponentPropsWithRef } from 'react'
 import { PRIORITY_LABELS, type Board, type Column, type Task } from '../../shared/kanban.ts'
 import DueDate from './DueDate'
 import Highlight from './Highlight'
+import { useScrollMargin } from './useScrollMargin'
 import './TaskList.css'
 
 type SortKey = 'status' | 'due'
@@ -132,23 +133,11 @@ const ESTIMATED_ROW_HEIGHT = 57
 function VirtualRows({ rows, search, onOpenTask }: { rows: ListRow[]; search: string; onOpenTask: (taskId: string) => void }) {
   const bodyRef = useRef<HTMLTableSectionElement>(null)
   // Where the table body starts on the page: the virtualizer works in page coordinates
-  const [scrollMargin, setScrollMargin] = useState(0)
+  const scrollMargin = useScrollMargin(bodyRef)
   // The row that last had focus stays in the page even when scrolled away, so keyboard users
   // don't lose their place, and closing the task modal can hand focus back to its title button
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null)
   const focusedIndex = focusedTaskId === null ? -1 : rows.findIndex((row) => row.task.id === focusedTaskId)
-
-  useLayoutEffect(() => {
-    const body = bodyRef.current
-    if (!body) return
-    const measure = () => setScrollMargin(body.getBoundingClientRect().top + window.scrollY)
-    measure()
-    // Anything above the table changing height (a status banner, the filter bar wrapping)
-    // moves it down the page, and every such change resizes the body
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
-    observer?.observe(document.body)
-    return () => observer?.disconnect()
-  }, [])
 
   const getItemKey = useCallback((index: number) => rows[index].task.id, [rows])
   const rangeExtractor = useCallback(

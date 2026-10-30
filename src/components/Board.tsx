@@ -19,6 +19,7 @@ import type { Board as BoardType, Task } from '../../shared/kanban.ts'
 import Card from './Card'
 import Column from './Column'
 import { kanbanKeyboardCoordinates, laneKeyboardCoordinates } from './keyboardCoordinates'
+import { VIRTUALIZE_COLUMN_FROM } from './VirtualCards'
 import './Board.css'
 
 interface BoardProps {
@@ -198,6 +199,11 @@ function Board({
           {shown.columnOrder.map((columnId) => {
             const column = shown.columns[columnId]
             const tasks = column.taskIds.map((taskId) => shown.tasks[taskId]).filter(isVisible)
+            // Long columns in the Column view render only the cards near the screen. Counted on
+            // the board, not the preview, so a column doesn't switch modes mid-drag. The Grid
+            // and Row views aren't virtualized yet
+            const virtualized =
+              layout === 'column' && board.columns[columnId].taskIds.length > VIRTUALIZE_COLUMN_FROM
             return (
               <Column
                 key={column.id}
@@ -210,6 +216,8 @@ function Board({
                 onAddTask={onAddTask}
                 onOpenTask={onOpenTask}
                 orientation={cardsRun}
+                virtualized={virtualized}
+                activeTaskId={virtualized ? activeTaskId : null}
               />
             )
           })}

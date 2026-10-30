@@ -5,6 +5,7 @@ import type { Column as ColumnType, Task } from '../../shared/kanban.ts'
 import AddTaskForm from './AddTaskForm'
 import { PlusIcon } from './icons'
 import SortableCard from './SortableCard'
+import VirtualCards from './VirtualCards'
 import './Column.css'
 
 interface ColumnProps {
@@ -23,6 +24,10 @@ interface ColumnProps {
   onOpenTask: (taskId: string) => void
   /** Cards top to bottom (Grid, Column views) or left to right (Row view lanes) */
   orientation?: 'vertical' | 'horizontal'
+  /** Render only the cards near the screen (a long column in the Column view; see VirtualCards) */
+  virtualized?: boolean
+  /** The card being dragged; only passed to virtualized columns, which must keep it in the page */
+  activeTaskId?: string | null
 }
 
 function Column({
@@ -35,6 +40,8 @@ function Column({
   onAddTask,
   onOpenTask,
   orientation = 'vertical',
+  virtualized = false,
+  activeTaskId = null,
 }: ColumnProps) {
   const [isAdding, setIsAdding] = useState(false)
   // The whole column is a drop zone, so cards can be dropped into an empty column too.
@@ -83,16 +90,21 @@ function Column({
             onClose={() => setIsAdding(false)}
           />
         )}
-        {/* Only the shown cards are sortable: dnd-kit's items must match what's rendered.
-            Where a dropped card lands is worked out against the full column in Board */}
+        {/* Only the shown cards are sortable. Where a dropped card lands is worked out against
+            the full column in Board. A virtualized column keeps every shown card in items, so
+            each card's index is its real position, though only some cards are rendered */}
         <SortableContext
           id={column.id}
           items={items}
           strategy={orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy}
         >
-          {tasks.map((task) => (
-            <SortableCard key={task.id} task={task} disabled={readOnly} onOpen={onOpenTask} search={search} />
-          ))}
+          {virtualized
+            ? tasks.length > 0 && (
+                <VirtualCards tasks={tasks} activeTaskId={activeTaskId} readOnly={readOnly} onOpenTask={onOpenTask} search={search} />
+              )
+            : tasks.map((task) => (
+                <SortableCard key={task.id} task={task} disabled={readOnly} onOpen={onOpenTask} search={search} />
+              ))}
         </SortableContext>
         {tasks.length === 0 && !isAdding && (
           // Still a drop zone: the message gives way as soon as a dragged card arrives

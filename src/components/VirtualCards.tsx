@@ -1,5 +1,5 @@
 import { defaultRangeExtractor, useWindowVirtualizer, type Range } from '@tanstack/react-virtual'
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { Task } from '../../shared/kanban.ts'
 import SortableCard from './SortableCard'
 import { useScrollMargin } from './useScrollMargin'
@@ -35,12 +35,28 @@ interface VirtualCardsProps {
 function VirtualCards({ tasks, activeTaskId, readOnly, onOpenTask, search }: VirtualCardsProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const scrollMargin = useScrollMargin(listRef)
-  const activeIndex = activeTaskId === null ? -1 : tasks.findIndex((task) => task.id === activeTaskId)
+  // The card that last had focus, so it stays in the page when it scrolls away
+  const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null)
+  const indexOf = (taskId: string | null) => (taskId === null ? -1 : tasks.findIndex((task) => task.id === taskId))
+  const activeIndex = indexOf(activeTaskId)
+  const focusedIndex = indexOf(focusedTaskId)
 
   const getItemKey = useCallback((index: number) => tasks[index].id, [tasks])
+  // Cards kept in the page wherever they are, so the column behaves as if every card were there:
+  // - the dragged card: dnd-kit needs it for the whole drag
+  // - the first and last: where ← and → from a neighbouring column land (keyboardCoordinates.ts),
+  //   and where Tab and Shift+Tab enter the column
+  // - the focused card and its neighbours: focus isn't lost when it scrolls away, and Tab and
+  //   Shift+Tab move to the card next to it rather than to whatever else is in the page
+  const lastIndex = tasks.length - 1
   const rangeExtractor = useCallback(
-    (range: Range) => withPinned(defaultRangeExtractor(range), [activeIndex], range.count),
-    [activeIndex],
+    (range: Range) =>
+      withPinned(
+        defaultRangeExtractor(range),
+        [activeIndex, 0, lastIndex, focusedIndex - 1, focusedIndex, focusedIndex === -1 ? -1 : focusedIndex + 1],
+        range.count,
+      ),
+    [activeIndex, lastIndex, focusedIndex],
   )
   // The rule is about the React Compiler (not used here) memoizing a component that holds the
   // virtualizer's functions; the only one passed on, measureElement, goes to a plain div
@@ -56,7 +72,15 @@ function VirtualCards({ tasks, activeTaskId, readOnly, onOpenTask, search }: Vir
   })
 
   return (
-    <div ref={listRef} className="column-virtual-list" style={{ height: virtualizer.getTotalSize() }}>
+    <div
+      ref={listRef}
+      className="column-virtual-list"
+      style={{ height: virtualizer.getTotalSize() }}
+      onFocus={(event) => {
+        const index = Number((event.target as HTMLElement).closest<HTMLElement>('[data-index]')?.dataset.index)
+        if (Number.isInteger(index)) setFocusedTaskId(tasks[index].id)
+      }}
+    >
       {virtualizer.getVirtualItems().map((item) => (
         <div
           key={item.key}

@@ -98,6 +98,37 @@ describe('Board, Column view, long columns (virtualized)', () => {
     expect(document.querySelector('.card-placeholder')).toBeNull()
   })
 
+  it('keeps the first and last cards in the page: where keyboard moves from other columns land', () => {
+    const { titles } = setup(VIRTUALIZE_COLUMN_FROM + 50)
+    expect(titles()).toContain('Task 149')
+    act(() => scrollWindowTo(80 * CARD_STEP))
+    expect(titles()[0]).toBe('Task 0')
+    expect(titles().at(-1)).toBe('Task 149')
+  })
+
+  it('keeps the focused card and its neighbours in the page when they scroll away', () => {
+    const { titles, card } = setup(VIRTUALIZE_COLUMN_FROM + 50)
+    const focused = card('Task 5')
+    act(() => focused.focus())
+    act(() => scrollWindowTo(80 * CARD_STEP))
+    expect(focused).toBeInTheDocument()
+    expect(focused).toHaveFocus()
+    // In column order: Tab and Shift+Tab from the focused card reach the cards next to it
+    expect(titles().slice(0, 4)).toEqual(['Task 0', 'Task 4', 'Task 5', 'Task 6'])
+    expect(titles()).not.toContain('Task 7')
+  })
+
+  it('keeps a picked-up card in the page after Escape, where it still has focus', async () => {
+    const { user, card } = setup(VIRTUALIZE_COLUMN_FROM + 50)
+    const dragged = card('Task 2')
+    act(() => dragged.focus())
+    await user.keyboard(' ')
+    act(() => scrollWindowTo(100 * CARD_STEP))
+    await user.keyboard('{Escape}')
+    expect(dragged).toBeInTheDocument()
+    expect(dragged).not.toHaveClass('card-placeholder')
+  })
+
   it('opens a rendered card', async () => {
     const { user, onOpenTask, card } = setup(VIRTUALIZE_COLUMN_FROM + 50)
     await user.click(card('Task 3'))

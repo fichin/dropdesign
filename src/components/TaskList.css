@@ -157,6 +157,41 @@
   font-weight: 600;
 }
 
+/* Long lists (see VirtualRows in TaskList.tsx). The columns get fixed widths, so they don't
+   shift as different rows scroll into the page; the values match the widths the browser picks
+   for typical content, on desktop and at the table's 720px minimum on phones */
+.task-list-virtual {
+  table-layout: fixed;
+}
+
+.task-list-virtual thead th:nth-child(1) {
+  width: 34%;
+}
+
+.task-list-virtual thead th:nth-child(2),
+.task-list-virtual thead th:nth-child(5) {
+  width: 16%;
+}
+
+.task-list-virtual thead th:nth-child(3) {
+  width: 20%;
+}
+
+.task-list-virtual thead th:nth-child(4) {
+  width: 14%;
+}
+
+/* Empty rows stand in for the ones that aren't rendered. They take up space and nothing else */
+.task-list tbody .task-list-spacer {
+  cursor: default;
+}
+
+.task-list tbody tr.task-list-spacer > td {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
 .task-list-empty {
   padding: 32px 16px;
   color: var(--text-muted);

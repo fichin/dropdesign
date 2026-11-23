@@ -442,6 +442,10 @@
   text-align: center;
 }
 
+.auth-perf {
+  margin-top: 12px;
+}
+
 .auth-switch a {
   border-radius: 4px;
   color: var(--primary-text);

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import AuthPage from './components/AuthPage'
 import BoardScreen from './components/BoardScreen'
 import NotFoundPage from './components/NotFoundPage'
@@ -7,9 +7,27 @@ import { useAuth } from './state/useAuth'
 
 const AUTH_PATHS = { '/login': 'login', '/register': 'register' } as const
 
+// The performance demo is a separate download: the rest of the app doesn't need it
+const PERF_PATH = '/perf'
+const PerfShowcase = lazy(() => import('./demo/PerfShowcase'))
+
 function App() {
-  const { auth, login, register, tryDemo, logout, sessionEnded } = useAuth()
   const { path, navigate } = usePath()
+
+  // Before anything that talks to the server: the demo runs entirely in the browser, without
+  // even the session check
+  if (path === PERF_PATH) {
+    return (
+      <Suspense fallback={<p>Loading the performance demo…</p>}>
+        <PerfShowcase onLeave={() => navigate('/')} />
+      </Suspense>
+    )
+  }
+  return <MainApp path={path} navigate={navigate} />
+}
+
+function MainApp({ path, navigate }: ReturnType<typeof usePath>) {
+  const { auth, login, register, tryDemo, logout, sessionEnded } = useAuth()
   const authMode = AUTH_PATHS[path as keyof typeof AUTH_PATHS]
   const isBoard = path === '/'
 

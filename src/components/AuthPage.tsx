@@ -356,6 +356,10 @@ function AuthPage({ mode, notice, onSubmit, onSwitchMode, onTryDemo }: AuthPageP
               {copy.switchLink}
             </a>
           </p>
+          {/* A full page load: the demo is its own small app, with nothing from this page */}
+          <p className="auth-switch auth-perf">
+            See it with 10,000 tasks: <a href="/perf">Performance demo</a>
+          </p>
         </div>
 
         {/* Top-right corner, but last in the tab order: the form comes first */}

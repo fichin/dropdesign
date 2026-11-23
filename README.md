@@ -47,6 +47,52 @@ The List view, sortable by status and due date:
 
 ![List view in dark mode: every task as a table row with status, priority, due date and assignees](docs/screenshots/list-dark.png)
 
+## Performance case study
+
+**Try it: [dropdesign-ashy.vercel.app/perf](https://dropdesign-ashy.vercel.app/perf)**, no account needed. It fills a board
+with 1,000, 5,000 or 10,000 generated tasks, in your browser only (nothing is sent to the server or saved), and
+measures render time, view switches, elements in the page and card pick-up live on your device.
+
+**The problem.** With 5,000 tasks every card was in the page: about 160,000 elements and 110 MB of JavaScript heap.
+Picking up a card to drag it froze the page for about 17 seconds.
+
+**What changed.** The cards and columns were memoized, so one change no longer re-renders the whole board (#11).
+Then the List view (#13) and the Column view (#15) were virtualized: they render only the rows and cards near the
+screen, using `@tanstack/react-virtual`. In long columns, keyboard drag-and-drop still reaches cards that are scrolled
+out of view, the focused card stays rendered, and screen readers still hear each card's position
+(`aria-setsize`/`aria-posinset`).
+
+**Before and after**, with 5,000 tasks in the Column view. Each number is the median of 3 runs, alternating between
+the two versions. The measurements come from a production build in Chrome (Playwright, 1440×900, no CPU slowdown,
+API mocked). Interaction times are Event Timing durations, the measurement behind INP:
+
+| 5,000 tasks, Column view | Before (main before #15) | After (#15) |
+|---|---|---|
+| First render | 6,687 ms | 772 ms |
+| Elements in the page | 159,289 | 1,415 |
+| JavaScript heap | 111 MB | 9 MB |
+| Type in search | 960 ms | 56 ms |
+| Open a card | 920 ms | 88 ms |
+| Pick up a card (keyboard)* | 16,992 ms | 488 ms |
+| Drop it | 3,600 ms | 88 ms |
+
+\* From a second set of 3 alternating runs that waited up to 20 s per interaction: the first set waited 1.5 s, and
+picking up a card took longer than that before the change.
+
+In the List view (#13), switching to the list with 5,000 tasks went from 2,472 ms to 464 ms, and the list went from
+104,277 elements to 572.
+
+![The performance demo's panel with 5,000 tasks in the Column view: 36 of 5,000 cards rendered, 1,173 elements in the page, a card picked up in 373 ms](docs/screenshots/perf-column-5000.png)
+
+**Not done yet.** The Grid and Row views still render every card. In the demo they show up to 1,000 tasks, and the
+panel says so. Switching to the Grid view with 1,000 tasks put 27,365 elements in the page:
+
+![The same panel with 1,000 tasks in the Grid view: every card rendered, 27,365 elements in the page, the switch took 863 ms and a pick-up 740 ms](docs/screenshots/perf-grid-1000.png)
+
+The panel's numbers come from `performance.now()` up to the next paint (render and view switches), and from the input
+event's timestamp to the first paint of the lifted card (pick-up). They depend on the device and browser, so they won't
+match the table above exactly.
+
 ## Tech stack
 
 | | |
@@ -113,9 +159,9 @@ and `npm run demo:reset` against it first.
 ## Tests
 
 ```bash
-npm test                 # frontend: 173 tests (Vitest)
+npm test                 # frontend: 209 tests (Vitest)
 npm run coverage         # with a coverage report (about 84% of lines)
-cd backend && npm test   # backend: 69 tests against TEST_DATABASE_URL
+cd backend && npm test   # backend: 82 tests against TEST_DATABASE_URL
 ```
 
 CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on pushes to `main` and
@@ -130,7 +176,7 @@ error boundary, and the loading and empty states.
 ## Project layout
 
 ```
-src/            React app: components/, state/ (reducer, sync, filters, theme), api/
+src/            React app: components/, state/ (reducer, sync, filters, theme), api/, demo/ (/perf)
 backend/        Express API, SQL migrations, demo data, tests (details in backend/README.md)
 scripts/        build-vercel.mjs: the production build for Vercel
 shared/         Types and sample data used by both
@@ -142,6 +188,8 @@ docs/           Demo GIF and screenshots
 - **Live updates**: other people's changes appear when you reload (no websockets yet)
 - **Invite**: shown in the top bar, not wired up
 - **Password reset**
+- **Virtualized Grid and Row views**: they render every card, so they slow down on very large boards (see the
+  [performance case study](#performance-case-study))
 
 ## License
 
